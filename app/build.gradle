@@ -1,0 +1,67 @@
+apply plugin: 'com.android.application'
+
+//ButterKnife
+apply plugin: 'com.jakewharton.butterknife'
+//SVG-Android
+apply plugin: 'svg'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.3"
+    defaultConfig {
+        applicationId "com.sorashiro.chinamapinfomation"
+        minSdkVersion 16
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+
+svg {
+    // 下面四个参数是vector文件生成java渲染类文件的相关配置
+    // vector资源文件目录，支持多个目录
+    vectorDirs = ["src/main/svg_debug/drawable"]
+    // shape资源文件目录
+    shapeDir = "src/main/svg_release/drawable"
+    // 生成java渲染类的存放包目录
+    javaDir = "src/main/java/com/github/megatronking/svg/sample/drawables"
+
+    // 下面参数是svg格式文件生成vector资源文件的配置
+    svg2vector {
+        // 这里的test可以随意命名，建议使用文件夹名
+        test {
+            // svg格式文件目录
+            svgDir = "${rootDir}/svg"
+            // 生成vector资源文件的存放目录
+            vectorDir = "src/main/svg_debug/drawable"
+            // 宽高参数指定生成vector文件的宽高，如果省略将默认使用图片原始宽高
+            // 注意此处宽高比要与图片宽高比一致，否则图片会变形
+            height = 1141
+            width = 1369
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    testCompile 'junit:junit:4.12'
+
+    //ButterKnife
+    compile 'com.jakewharton:butterknife:8.5.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'
+    //SVG-Android
+    compile 'com.github.megatronking:svg-support:1.3.2'
+}

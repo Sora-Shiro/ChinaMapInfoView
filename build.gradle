@@ -1,0 +1,36 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+
+buildscript {
+    repositories {
+        // 阿里镜像
+        maven {url "http://maven.aliyun.com/nexus/content/groups/public"}
+        jcenter()
+        //ButterKnife
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.2.0'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+
+        //ButterKnife
+        classpath 'com.jakewharton:butterknife-gradle-plugin:8.5.1'
+        //SVG-Android
+        classpath 'com.github.megatronking:svg-plugin:1.3.8'
+    }
+}
+
+
+allprojects {
+    repositories {
+        // 阿里镜像
+        maven {url "http://maven.aliyun.com/nexus/content/groups/public"}
+        jcenter()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
