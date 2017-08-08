@@ -1,4 +1,4 @@
-package com.sorashiro.chinamapinfomation;
+package com.sorashiro.chinamapinformation;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.sorashiro.chinamapinfomation", appContext.getPackageName());
+        assertEquals("com.sorashiro.chinamapinformation", appContext.getPackageName());
     }
 }

@@ -1,7 +1,6 @@
-package com.sorashiro.chinamapinfomation;
+package com.sorashiro.chinamapinformation;
 
 import android.graphics.Color;
-import android.graphics.Paint;
 
 /**
  * Created by GameKing on 2017/8/7.
@@ -11,6 +10,10 @@ public class CnMapConfig {
 
     //文本（未实现）
     private String mText;
+    //文本颜色（未实现）
+    private int   mTextColor;
+    //文本大小
+    private int mTextSize;
     //填充颜色
     private int   mFillColor;
     //边缘颜色
@@ -19,9 +22,11 @@ public class CnMapConfig {
     private int   mStrokeWidth;
 
     public CnMapConfig() {
-        this.mText = "";
-        this.mFillColor = Color.parseColor("#8866ccff");
-        this.mStrokeColor = Color.parseColor("#44000000");
+        this.mText = "Test";
+        this.mTextColor = Color.parseColor("#ee82ee");
+        this.mTextSize = 15;
+        this.mFillColor = Color.parseColor("#66ccff");
+        this.mStrokeColor = Color.parseColor("#000000");
         this.mStrokeWidth = 2;
     }
 
@@ -31,6 +36,15 @@ public class CnMapConfig {
 
     public CnMapConfig setText(String text) {
         mText = text;
+        return this;
+    }
+
+    public int getTextColor() {
+        return mTextColor;
+    }
+
+    public CnMapConfig setText(int color) {
+        mTextColor = color;
         return this;
     }
 
@@ -61,4 +75,12 @@ public class CnMapConfig {
         return this;
     }
 
+    public int getTextSize() {
+        return mTextSize;
+    }
+
+    public CnMapConfig setTextSize(int textSize) {
+        mTextSize = textSize;
+        return this;
+    }
 }

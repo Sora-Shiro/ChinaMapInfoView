@@ -1,4 +1,4 @@
-package com.sorashiro.chinamapinfomation;
+package com.sorashiro.chinamapinformation;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -22,8 +22,9 @@ public class CnSvg extends SVGRenderer {
 
     private float scaleX;
     private float scaleY;
-    float minScale;
     private CnMap mCnMap;
+
+    private Paint mTextPaint;
 
 
     public CnSvg(Context context, CnMap cnMap) {
@@ -39,7 +40,7 @@ public class CnSvg extends SVGRenderer {
     public void render(Canvas canvas, int w, int h, ColorFilter filter) {
         scaleX = w / 1369.0f;
         scaleY = h / 1141.0f;
-        minScale = Math.min(scaleX, scaleY);
+        final float minScale = Math.min(scaleX, scaleY);
 
         mPath.reset();
         mRenderPath.reset();
@@ -57,18 +58,36 @@ public class CnSvg extends SVGRenderer {
             mFillPaint.setStyle(Paint.Style.FILL);
             mFillPaint.setAntiAlias(true);
         }
+        if (mTextPaint == null) {
+            mTextPaint = new Paint();
+            mTextPaint.setStyle(Paint.Style.FILL);
+            mTextPaint.setAntiAlias(true);
+        }
 
         for(int i = 0; i < 34; i++) {
-
             //TODO 需要重写
             CnMapConfig cnMapConfig = mConfig.get(mProvince[i]);
             mFillPaint.setColor(cnMapConfig.getFillColor());
-            mFillPaint.setStrokeWidth(cnMapConfig.getStrokeWidth());
+            float strokeWidth = cnMapConfig.getStrokeWidth();
+            if (strokeWidth < minScale * 1.0f * 1.0f) {
+                strokeWidth = minScale * 1.0f * 1.0f;
+            }
+            mFillPaint.setStrokeWidth(strokeWidth);
             mStrokePaint.setColor(cnMapConfig.getStrokeColor());
-            mStrokePaint.setStrokeWidth(cnMapConfig.getStrokeWidth());
+            mStrokePaint.setStrokeWidth(strokeWidth);
+
 
             renderGo(canvas, filter, mStrokePaint, i, cnMapConfig.getText());
             renderGo(canvas, filter, mFillPaint, i, cnMapConfig.getText());
+        }
+
+        //new
+        for(int i = 0; i < 34; i++) {
+            //TODO 需要重写
+            CnMapConfig cnMapConfig = mConfig.get(mProvince[i]);
+            mTextPaint.setColor(cnMapConfig.getTextColor());
+            mTextPaint.setTextSize(cnMapConfig.getTextSize());
+            renderTextByProvince(canvas, cnMapConfig.getText(), i, w , h);
         }
 
     }
@@ -76,63 +95,134 @@ public class CnSvg extends SVGRenderer {
     private void renderGo(Canvas canvas, ColorFilter filter, Paint paint, int i, String text) {
         if(i >= 0 && i <= 8) {
             renderByProvince1(i);
-
-            mRenderPath.addPath(mPath, mFinalPathMatrix);
-            paint.setStrokeJoin(Paint.Join.MITER);
-            paint.setStrokeCap(Paint.Cap.BUTT);
-            paint.setStrokeMiter(4.0f);
-            paint.setColorFilter(filter);
-            canvas.drawPath(mRenderPath, paint);
-
-            mPath.reset();
-            mRenderPath.reset();
-
-            mFinalPathMatrix.setValues(new float[]{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f});
-            mFinalPathMatrix.postScale(scaleX, scaleY);
         } else if (i >= 9 && i <= 19) {
             renderByProvince2(i);
-
-            mRenderPath.addPath(mPath, mFinalPathMatrix);
-            paint.setStrokeJoin(Paint.Join.MITER);
-            paint.setStrokeCap(Paint.Cap.BUTT);
-            paint.setStrokeMiter(4.0f);
-            paint.setColorFilter(filter);
-            canvas.drawPath(mRenderPath, paint);
-            mPath.reset();
-            mRenderPath.reset();
-
-            mFinalPathMatrix.setValues(new float[]{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f});
-            mFinalPathMatrix.postScale(scaleX, scaleY);
         } else if (i >= 20 && i <= 29) {
             renderByProvince3(i);
-
-            mRenderPath.addPath(mPath, mFinalPathMatrix);
-            paint.setStrokeJoin(Paint.Join.MITER);
-            paint.setStrokeCap(Paint.Cap.BUTT);
-            paint.setStrokeMiter(4.0f);
-            paint.setColorFilter(filter);
-            canvas.drawPath(mRenderPath, paint);
-            mPath.reset();
-            mRenderPath.reset();
-
-            mFinalPathMatrix.setValues(new float[]{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f});
-            mFinalPathMatrix.postScale(scaleX, scaleY);
         } else if (i >= 29 && i <= 33) {
             renderByProvince4(i);
-
-            mRenderPath.addPath(mPath, mFinalPathMatrix);
-            paint.setStrokeJoin(Paint.Join.MITER);
-            paint.setStrokeCap(Paint.Cap.BUTT);
-            paint.setStrokeMiter(4.0f);
-            paint.setColorFilter(filter);
-            canvas.drawPath(mRenderPath, paint);
-            mPath.reset();
-            mRenderPath.reset();
-
-            mFinalPathMatrix.setValues(new float[]{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f});
-            mFinalPathMatrix.postScale(scaleX, scaleY);
         }
+        mRenderPath.addPath(mPath, mFinalPathMatrix);
+        paint.setStrokeJoin(Paint.Join.MITER);
+        paint.setStrokeCap(Paint.Cap.BUTT);
+        paint.setStrokeMiter(4.0f);
+        paint.setColorFilter(filter);
+        canvas.drawPath(mRenderPath, paint);
+        mPath.reset();
+        mRenderPath.reset();
 
+        mFinalPathMatrix.setValues(
+            new float[]{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f}
+        );
+        mFinalPathMatrix.postScale(scaleX, scaleY);
+    }
+    
+    //省份文本绘制
+    private void renderTextByProvince(Canvas canvas, String text, int index, int w, int h) {
+        switch (index) {
+            case 0:
+                canvas.drawText(text, 1035 * scaleX, 700 * scaleY, mTextPaint);
+                break;
+            case 1:
+                canvas.drawText(text, 1010 * scaleX, 450 * scaleY, mTextPaint);
+                break;
+            case 2:
+                canvas.drawText(text, 770 * scaleX, 800 * scaleY, mTextPaint);
+                break;
+            case 3:
+                canvas.drawText(text, 1085 * scaleX, 880 * scaleY, mTextPaint);
+                break;
+            case 4:
+                canvas.drawText(text, 500 * scaleX, 440 * scaleY, mTextPaint);
+                break;
+            case 5:
+                canvas.drawText(text, 970 * scaleX, 970 * scaleY, mTextPaint);
+                break;
+            case 6:
+                canvas.drawText(text, 810 * scaleX, 990 * scaleY, mTextPaint);
+                break;
+            case 7:
+                canvas.drawText(text, 760 * scaleX, 890 * scaleY, mTextPaint);
+                break;
+            case 8:
+                canvas.drawText(text, 870 * scaleX, 1120 * scaleY, mTextPaint);
+                break;
+            case 9:
+                canvas.drawText(text, 970 * scaleX, 510 * scaleY, mTextPaint);
+                break;
+            case 10:
+                canvas.drawText(text, 1210 * scaleX, 180 * scaleY, mTextPaint);
+                break;
+            case 11:
+                canvas.drawText(text, 930 * scaleX, 650 * scaleY, mTextPaint);
+                break;
+            case 12:
+                canvas.drawText(text, 1030 * scaleX, 1030 * scaleY, mTextPaint);
+                break;
+            case 13:
+                canvas.drawText(text, 900 * scaleX, 740 * scaleY, mTextPaint);
+                break;
+            case 14:
+                canvas.drawText(text, 900 * scaleX, 850 * scaleY, mTextPaint);
+                break;
+            case 15:
+                canvas.drawText(text, 1090 * scaleX, 650 * scaleY, mTextPaint);
+                break;
+            case 16:
+                canvas.drawText(text, 1010 * scaleX, 850 * scaleY, mTextPaint);
+                break;
+            case 17:
+                canvas.drawText(text, 1200 * scaleX, 305 * scaleY, mTextPaint);
+                break;
+            case 18:
+                canvas.drawText(text, 1120 * scaleX, 380 * scaleY, mTextPaint);
+                break;
+            case 19:
+                canvas.drawText(text, 950 * scaleX, 1070 * scaleY, mTextPaint);
+                break;
+            case 20:
+                canvas.drawText(text, 760 * scaleX, 445 * scaleY, mTextPaint);
+                break;
+            case 21:
+                canvas.drawText(text, 745 * scaleX, 550 * scaleY, mTextPaint);
+                break;
+            case 22:
+                canvas.drawText(text, 490 * scaleX, 590 * scaleY, mTextPaint);
+                break;
+            case 23:
+                canvas.drawText(text, 800 * scaleX, 660 * scaleY, mTextPaint);
+                break;
+            case 24:
+                canvas.drawText(text, 1205 * scaleX, 730 * scaleY, mTextPaint);
+                break;
+            case 25:
+                canvas.drawText(text, 1035 * scaleX, 565 * scaleY, mTextPaint);
+                break;
+            case 26:
+                canvas.drawText(text, 890 * scaleX, 565 * scaleY, mTextPaint);
+                break;
+            case 27:
+                canvas.drawText(text, 650 * scaleX, 765 * scaleY, mTextPaint);
+                break;
+            case 28:
+                canvas.drawText(text, 1230 * scaleX, 970 * scaleY, mTextPaint);
+                break;
+            case 29:
+                canvas.drawText(text, 1060 * scaleX, 489 * scaleY, mTextPaint);
+                break;
+            case 30:
+                canvas.drawText(text, 250 * scaleX, 400 * scaleY, mTextPaint);
+                break;
+            case 31:
+                canvas.drawText(text, 250 * scaleX, 680 * scaleY, mTextPaint);
+                break;
+            case 32:
+                canvas.drawText(text, 600 * scaleX, 950 * scaleY, mTextPaint);
+                break;
+            case 33:
+                canvas.drawText(text, 1125 * scaleX, 780 * scaleY, mTextPaint);
+                break;
+        }
     }
 
 

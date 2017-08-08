@@ -1,4 +1,4 @@
-package com.sorashiro.chinamapinfomation.view;
+package com.sorashiro.chinamapinformation.view;
 
 import android.content.Context;
 import android.util.AttributeSet;

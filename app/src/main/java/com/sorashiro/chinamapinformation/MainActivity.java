@@ -1,4 +1,4 @@
-package com.sorashiro.chinamapinfomation;
+package com.sorashiro.chinamapinformation;
 
 import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;

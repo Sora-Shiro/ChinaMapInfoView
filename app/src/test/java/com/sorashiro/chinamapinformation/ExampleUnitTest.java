@@ -1,4 +1,4 @@
-package com.sorashiro.chinamapinfomation;
+package com.sorashiro.chinamapinformation;
 
 import org.junit.Test;
 
