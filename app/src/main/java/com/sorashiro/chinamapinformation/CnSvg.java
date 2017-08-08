@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
+import android.util.Log;
 
 import com.github.megatronking.svg.support.SVGRenderer;
 
@@ -34,10 +35,12 @@ public class CnSvg extends SVGRenderer {
         mHeight = dip2px(1141.0f);
         mProvince = cnMap.PROVINCE;
         mConfig = cnMap.config;
+//        mPivotX = 100f;
     }
 
     @Override
     public void render(Canvas canvas, int w, int h, ColorFilter filter) {
+        Log.v("aaa", "render");
         scaleX = w / 1369.0f;
         scaleY = h / 1141.0f;
         final float minScale = Math.min(scaleX, scaleY);

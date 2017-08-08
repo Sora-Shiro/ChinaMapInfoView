@@ -27,7 +27,7 @@ public class CnMapConfig {
         this.mTextSize = 15;
         this.mFillColor = Color.parseColor("#66ccff");
         this.mStrokeColor = Color.parseColor("#000000");
-        this.mStrokeWidth = 2;
+        this.mStrokeWidth = 3;
     }
 
     public String getText() {
