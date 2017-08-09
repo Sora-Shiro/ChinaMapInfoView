@@ -5,6 +5,8 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -30,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         initSVG();
+
+        initListener();
     }
 
     private void initSVG() {
@@ -39,5 +43,24 @@ public class MainActivity extends AppCompatActivity {
 //        drawable.setBounds(100, 100, 100, 100);
         imgCnMap.setImageDrawable(drawable);
 //        imgCnMap.doScale();
+    }
+
+    private void initListener(){
+        imgCnMap.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch(event.getAction()){
+                    case MotionEvent.ACTION_DOWN:
+                        textTest.setText("起始位置为："+"("+event.getX()+" , "+event.getY()+")");
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        textTest.setText("移动中坐标为："+"("+event.getX()+" , "+event.getY()+")");
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        textTest.setText("最后位置为："+"("+event.getX()+" , "+event.getY()+")");
+                }
+                return true;
+            }
+        });
     }
 }
