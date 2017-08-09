@@ -38,11 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initSVG() {
         Drawable drawable = new SVGDrawable(new CnSvgBig(this, new CnMap()));
-//        Rect bounds = drawable.getBounds();
-//        LogAndToastUtil.LogV(bounds.left + " : " + bounds.right);
-//        drawable.setBounds(100, 100, 100, 100);
         imgCnMap.setImageDrawable(drawable);
-//        imgCnMap.doScale();
     }
 
     private void initListener(){

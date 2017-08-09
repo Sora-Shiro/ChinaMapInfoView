@@ -3,28 +3,28 @@ package com.sorashiro.chinamapinformation.view;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
-import android.view.View;
 import android.widget.ImageView;
 
 import com.sorashiro.chinamapinformation.tool.LogAndToastUtil;
 
 /**
  * Created by SoraShiro on 2017/8/7.
- *
+ * <p>
  * ScaleGestureDetector refer to ldm, link : http://blog.csdn.net/true100/article/details/51141496
  */
 
-public class ChinaMapView extends ImageView implements View.OnTouchListener, ScaleGestureDetector.OnScaleGestureListener{
+public class ChinaMapView extends ImageView {
 
-    // 检测两个手指在屏幕上做缩放的手势工具类
-    private ScaleGestureDetector mScaleGestureDetector;
-    // 图片缩放工具操作类Matrix
     private Matrix mImageMatrix = new Matrix();
+    RectF mRectF;     // 图片所在区域
+    boolean canDrag   = false;
+    PointF  lastPoint = new PointF(0, 0);
 
     private float mMaxScale;
     private float mBaseScale;
@@ -46,8 +46,7 @@ public class ChinaMapView extends ImageView implements View.OnTouchListener, Sca
 
     private void init(Context context) {
         super.setScaleType(ScaleType.MATRIX);
-        mScaleGestureDetector = new ScaleGestureDetector(context, this);
-        setOnTouchListener(this);
+        mImageMatrix = new Matrix();
     }
 
     @Override
@@ -61,19 +60,11 @@ public class ChinaMapView extends ImageView implements View.OnTouchListener, Sca
         }
         int dw = d.getIntrinsicWidth();// 图片固有宽度
         int dh = d.getIntrinsicHeight();// 图片固有高度
-        float scale = 1.0f;
-        if (dw > w && dh > h) {// 图片宽度大于控件宽度且高度大于控件高度
-            scale = w * 1.0f / dw;// 缩小一定值
-        }
-        // 图片宽度大于控件宽度但高度小于控件高度& 图片的宽高都小于控件的宽高
-        if ((dw < w && dh < h) || (dw > w && dh < h)) {
-            scale = Math.min(w * 1.0f / dw, h * 1.0f / dh);// 按照宽度对应缩放最小值进行缩放
-        }
-        if (dw < w && dh > h) {// 图片宽度小于控件宽度，但图片高度大于控件高度
-            scale = h * 1.0f / dh;// 缩小一定的比例
-        }
-        mBaseScale = scale;
-        mMaxScale = mBaseScale * 10;
+
+        mRectF = new RectF(0, 0, w, h);
+
+        mBaseScale = Math.min(w * 1.0f / dw, h * 1.0f / dh);
+        mMaxScale = mBaseScale * 100;
         // 将图片移动到手机屏幕的中间位置
         float dx = w / 2 - dw / 2;
         float dy = h / 2 - dh / 2;
@@ -89,8 +80,7 @@ public class ChinaMapView extends ImageView implements View.OnTouchListener, Sca
     }
 
 
-    @Override
-    public boolean onScale(ScaleGestureDetector detector) {
+    public void onScale(ScaleGestureDetector detector) {
         // 前一个伸缩事件至当前伸缩事件的伸缩比率
         float scaleFactor = detector.getScaleFactor();
         float scale = getScale();
@@ -103,27 +93,11 @@ public class ChinaMapView extends ImageView implements View.OnTouchListener, Sca
             if (scale * scaleFactor > mMaxScale) {
                 scaleFactor = mMaxScale / scale;
             }
-            // 以屏幕中央位置进行缩放
-            // mScaleMatrix.postScale(scaleFactor, scaleFactor, getWidth() / 2,
-            // getHeight() / 2);
-            // 以手指所在地方进行缩放
             mImageMatrix.postScale(scaleFactor, scaleFactor,
                     detector.getFocusX(), detector.getFocusY());
             borderAndCenterCheck();
             setImageMatrix(mImageMatrix);
         }
-        return false;
-    }
-
-    @Override
-    public boolean onScaleBegin(ScaleGestureDetector detector) {
-        // 一定要返回true才会进入onScale()这个函数
-        return true;
-    }
-
-    @Override
-    public void onScaleEnd(ScaleGestureDetector detector) {
-
     }
 
     private float getScale() {
@@ -168,23 +142,51 @@ public class ChinaMapView extends ImageView implements View.OnTouchListener, Sca
 
     /**
      * 获得图片放大缩小以后的宽和高
-     *
-     * @return
      */
     private RectF getMatrixRectF() {
         Matrix matrix = mImageMatrix;
         RectF rectF = new RectF();
         Drawable d = getDrawable();
         if (d != null) {
-            rectF.set(0, 0, d.getIntrinsicWidth(), d.getIntrinsicHeight());
+            rectF.set(0, 0, d.getIntrinsicWidth(), d.getIntrinsicHeight()); // TODO 这句有用吗
             matrix.mapRect(rectF);
         }
         return rectF;
     }
 
     @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        mScaleGestureDetector.onTouchEvent(event);
-        return true;//这里要return true才行
+    public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_POINTER_DOWN:
+                // ▼ 判断是否是第一个手指 && 是否包含在图片区域内
+                if (event.getPointerId(event.getActionIndex()) == 0 && mRectF.contains((int) event.getX(), (int) event.getY())) {
+                    canDrag = true;
+                    lastPoint.set(event.getX(0), event.getY(0));
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_POINTER_UP:
+                // ▼ 判断是否是第一个手指
+                if (event.getPointerId(event.getActionIndex()) == 0) {
+                    canDrag = false;
+                }
+                break;
+            case MotionEvent.ACTION_MOVE:
+                // 如果存在第一个手指，且这个手指的落点在图片区域内
+                if (canDrag) {
+                    // ▼ 注意 getX 和 getY
+                    int index = event.findPointerIndex(0);
+                    mImageMatrix.postTranslate(event.getX(index) - lastPoint.x, event.getY(index) - lastPoint.y);
+                    lastPoint.set(event.getX(index), event.getY(index));
+
+                    setImageMatrix(mImageMatrix);
+                }
+                break;
+        }
+
+        return true;
     }
+
+
 }
