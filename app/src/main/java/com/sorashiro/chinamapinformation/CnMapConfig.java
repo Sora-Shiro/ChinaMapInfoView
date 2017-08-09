@@ -3,7 +3,8 @@ package com.sorashiro.chinamapinformation;
 import android.graphics.Color;
 
 /**
- * Created by GameKing on 2017/8/7.
+ * Created by SoraShiro on 2017/8/7.
+ *
  */
 
 public class CnMapConfig {

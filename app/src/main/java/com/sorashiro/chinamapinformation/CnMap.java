@@ -3,7 +3,7 @@ package com.sorashiro.chinamapinformation;
 import java.util.HashMap;
 
 /**
- * Created by GameKing on 2017/8/7.
+ * Created by SoraShiro on 2017/8/7.
  *
  * PROVINCE[index] 省/市/自治区/特别行政区
  * 0 安徽

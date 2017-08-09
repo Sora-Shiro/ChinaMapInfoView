@@ -14,7 +14,9 @@ import android.widget.ImageView;
 import com.sorashiro.chinamapinformation.tool.LogAndToastUtil;
 
 /**
- * Created by GameKing on 2017/8/7.
+ * Created by SoraShiro on 2017/8/7.
+ *
+ * ScaleGestureDetector refer to ldm, link : http://blog.csdn.net/true100/article/details/51141496
  */
 
 public class ChinaMapView extends ImageView implements View.OnTouchListener, ScaleGestureDetector.OnScaleGestureListener{
