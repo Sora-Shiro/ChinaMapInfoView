@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
         initSVG();
 
-        initListener();
+//        initListener();
     }
 
     private void initSVG() {
