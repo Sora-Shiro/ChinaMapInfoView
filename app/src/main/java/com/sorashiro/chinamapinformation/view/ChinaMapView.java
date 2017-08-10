@@ -11,7 +11,9 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.widget.ImageView;
 
-import com.sorashiro.chinamapinformation.tool.LogAndToastUtil;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Objects;
 
 /**
  * Created by SoraShiro on 2017/8/7.
@@ -23,8 +25,11 @@ public class ChinaMapView extends ImageView {
 
     private Matrix mImageMatrix = new Matrix();
     RectF mRectF;     // 图片所在区域
-    boolean canDrag   = false;
-    PointF  lastPoint = new PointF(0, 0);
+    boolean canDrag    = false;
+    PointF  firstPoint = new PointF(0, 0);
+    boolean canScale = false;
+    PointF scaleFirstPoint = new PointF(0, 0);
+    PointF scaleSecondPoint = new PointF(0, 0);
 
     private float mMaxScale;
     private float mBaseScale;
@@ -154,32 +159,52 @@ public class ChinaMapView extends ImageView {
         return rectF;
     }
 
+    // 一个存储所有触摸点 ID 的 List
+    LinkedList<Integer> pointerIdList = new LinkedList<>();
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
-                // ▼ 判断是否是第一个手指 && 是否包含在图片区域内
-                if (event.getPointerId(event.getActionIndex()) == 0 && mRectF.contains((int) event.getX(), (int) event.getY())) {
+                pointerIdList.add(event.getPointerId(event.getActionIndex()));
+                // 当只有一个手指时，另一个手指按下会触发 ACTION_POINTER_DOWN ，这个时候得到的手指数是 2
+                // 当只有一个手指时才能进行拖动
+                if (event.getPointerCount() == 1 && mRectF.contains((int) event.getX(), (int) event.getY())) {
                     canDrag = true;
-                    lastPoint.set(event.getX(0), event.getY(0));
+                    firstPoint.set(event.getX(0), event.getY(0));
+                } else {
+                    canDrag = false;
+                }
+                if(event.getPointerCount() == 2 && mRectF.contains((int) event.getX(), (int) event.getY())) {
+                    canScale = true;
+                    scaleFirstPoint.set(event.getX(0), event.getY(0));
+                    scaleSecondPoint.set(event.getX(1), event.getY(1));
+                } else {
+                    canScale = false;
                 }
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP:
-                // ▼ 判断是否是第一个手指
-                if (event.getPointerId(event.getActionIndex()) == 0) {
-                    canDrag = false;
+                pointerIdList.remove(Integer.valueOf(event.getPointerId(event.getActionIndex())));
+                // 分辨哪个手指留在最后（不进行该处理会造成“瞬移”现象）：
+                // 当只剩两个手指时，其中一个手指抬起触发 ACTION_POINTER_UP ，这个时候得到的手指数还是 2
+                // pointerIdList 在这个时候会只剩下一个手指的id
+                // 这个时候 event.findPointerIndex(pointerIdList.get(0)) 拿到的
+                // 一定是最后一个仍然留在屏幕上的手指
+                if (event.getPointerCount() == 2) {
+                    canDrag = true;
+                    int index = event.findPointerIndex(pointerIdList.get(0));
+                    firstPoint.set(event.getX(index), event.getY(index));
+                }
+                if (event.getPointerCount() <= 2) {
+                    canScale = false;
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
-                // 如果存在第一个手指，且这个手指的落点在图片区域内
                 if (canDrag) {
-                    // ▼ 注意 getX 和 getY
-                    int index = event.findPointerIndex(0);
-                    mImageMatrix.postTranslate(event.getX(index) - lastPoint.x, event.getY(index) - lastPoint.y);
-                    lastPoint.set(event.getX(index), event.getY(index));
-
+                    mImageMatrix.postTranslate(event.getX(0) - firstPoint.x, event.getY(0) - firstPoint.y);
+                    firstPoint.set(event.getX(0), event.getY(0));
                     setImageMatrix(mImageMatrix);
                 }
                 break;
