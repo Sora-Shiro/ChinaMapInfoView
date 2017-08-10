@@ -8,12 +8,10 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
+import android.view.animation.Animation;
 import android.widget.ImageView;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.Objects;
 
 /**
  * Created by SoraShiro on 2017/8/7.
@@ -23,16 +21,21 @@ import java.util.Objects;
 
 public class ChinaMapView extends ImageView {
 
-    private Matrix mImageMatrix = new Matrix();
+    // 一个存储所有触摸点 ID 的 List
+    LinkedList<Integer> pointerIdList = new LinkedList<>();
+    boolean             canDrag       = false;
+    boolean             canScale      = false;
     RectF mRectF;     // 图片所在区域
-    boolean canDrag    = false;
-    PointF  firstPoint = new PointF(0, 0);
-    boolean canScale = false;
-    PointF scaleFirstPoint = new PointF(0, 0);
+    private Matrix mImageMatrix = new Matrix();
+    PointF firstPoint       = new PointF(0, 0);
+    PointF scaleFirstPoint  = new PointF(0, 0);
     PointF scaleSecondPoint = new PointF(0, 0);
+    int scaleFirstPid;
+    int scaleSecondPid;
 
-    private float mMaxScale;
     private float mBaseScale;
+    private float mCurrentScale;
+    private float mMaxScale;
 
     public ChinaMapView(Context context) {
         super(context, null);
@@ -69,7 +72,9 @@ public class ChinaMapView extends ImageView {
         mRectF = new RectF(0, 0, w, h);
 
         mBaseScale = Math.min(w * 1.0f / dw, h * 1.0f / dh);
-        mMaxScale = mBaseScale * 100;
+        mCurrentScale = mBaseScale;
+        mMaxScale = mBaseScale * 10;
+
         // 将图片移动到手机屏幕的中间位置
         float dx = w / 2 - dw / 2;
         float dy = h / 2 - dh / 2;
@@ -83,84 +88,6 @@ public class ChinaMapView extends ImageView {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
     }
-
-
-    public void onScale(ScaleGestureDetector detector) {
-        // 前一个伸缩事件至当前伸缩事件的伸缩比率
-        float scaleFactor = detector.getScaleFactor();
-        float scale = getScale();
-        // 控件图片的缩放范围
-        if ((scale < mMaxScale && scaleFactor > 1.0f)
-                || (scale > mBaseScale && scaleFactor < 1.0f)) {
-            if (scale * scaleFactor < mBaseScale) {
-                scaleFactor = mBaseScale / scale;
-            }
-            if (scale * scaleFactor > mMaxScale) {
-                scaleFactor = mMaxScale / scale;
-            }
-            mImageMatrix.postScale(scaleFactor, scaleFactor,
-                    detector.getFocusX(), detector.getFocusY());
-            borderAndCenterCheck();
-            setImageMatrix(mImageMatrix);
-        }
-    }
-
-    private float getScale() {
-        float[] values = new float[9];
-        mImageMatrix.getValues(values);
-        return values[Matrix.MSCALE_X];
-    }
-
-    private void borderAndCenterCheck() {
-        RectF rect = getMatrixRectF();
-        float deltaX = 0;
-        float deltaY = 0;
-        int width = getWidth();
-        int height = getHeight();
-        // 缩放时进行边界检测，防止出现白边
-        if (rect.width() >= width) {
-            if (rect.left > 0) {
-                deltaX = -rect.left;
-            }
-            if (rect.right < width) {
-                deltaX = width - rect.right;
-            }
-        }
-        if (rect.height() >= height) {
-            if (rect.top > 0) {
-                deltaY = -rect.top;
-            }
-            if (rect.bottom < height) {
-                deltaY = height - rect.bottom;
-            }
-        }
-        // 如果宽度或者高度小于控件的宽或者高；则让其居中
-        if (rect.width() < width) {
-            deltaX = width / 2f - rect.right + rect.width() / 2f;
-
-        }
-        if (rect.height() < height) {
-            deltaY = height / 2f - rect.bottom + rect.height() / 2f;
-        }
-        mImageMatrix.postTranslate(deltaX, deltaY);
-    }
-
-    /**
-     * 获得图片放大缩小以后的宽和高
-     */
-    private RectF getMatrixRectF() {
-        Matrix matrix = mImageMatrix;
-        RectF rectF = new RectF();
-        Drawable d = getDrawable();
-        if (d != null) {
-            rectF.set(0, 0, d.getIntrinsicWidth(), d.getIntrinsicHeight()); // TODO 这句有用吗
-            matrix.mapRect(rectF);
-        }
-        return rectF;
-    }
-
-    // 一个存储所有触摸点 ID 的 List
-    LinkedList<Integer> pointerIdList = new LinkedList<>();
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -176,10 +103,12 @@ public class ChinaMapView extends ImageView {
                 } else {
                     canDrag = false;
                 }
-                if(event.getPointerCount() == 2 && mRectF.contains((int) event.getX(), (int) event.getY())) {
+                if (event.getPointerCount() == 2 && mRectF.contains((int) event.getX(), (int) event.getY())) {
                     canScale = true;
                     scaleFirstPoint.set(event.getX(0), event.getY(0));
+                    scaleFirstPid = event.getPointerId(0);
                     scaleSecondPoint.set(event.getX(1), event.getY(1));
+                    scaleSecondPid = event.getPointerId(1);
                 } else {
                     canScale = false;
                 }
@@ -197,20 +126,129 @@ public class ChinaMapView extends ImageView {
                     int index = event.findPointerIndex(pointerIdList.get(0));
                     firstPoint.set(event.getX(index), event.getY(index));
                 }
+                // 小于两个手指时不能放缩
                 if (event.getPointerCount() <= 2) {
                     canScale = false;
                 }
+                // 检查是否超出可见区域，如果是那么进行动画让其可见
+                invisibleCheck();
                 break;
             case MotionEvent.ACTION_MOVE:
+                if (canScale) {
+                    float afterFirstX = event.getX(event.findPointerIndex(scaleFirstPid));
+                    float afterFirstY = event.getY(event.findPointerIndex(scaleFirstPid));
+                    float afterSecondX = event.getX(event.findPointerIndex(scaleSecondPid));
+                    float afterSecondY = event.getY(event.findPointerIndex(scaleSecondPid));
+                    float pivotX = (scaleFirstPoint.x + scaleSecondPoint.x) / 2;
+                    float pivotY = (scaleFirstPoint.y + scaleSecondPoint.y) / 2;
+                    double beforeDistance =
+                        Math.sqrt(
+                            Math.pow((scaleFirstPoint.x - scaleSecondPoint.x), 2) +
+                            Math.pow((scaleFirstPoint.y - scaleSecondPoint.y), 2)
+                        );
+                    double afterDistance =
+                        Math.sqrt(
+                            Math.pow((afterFirstX - afterSecondX), 2) +
+                            Math.pow((afterFirstY - afterSecondY), 2)
+                        );
+                    float scaleFactor = (float) (afterDistance / beforeDistance);
+
+//                    onScale(scaleFactor, pivotX, pivotY);
+
+                    mCurrentScale = scaleFactor;
+                    onScale(scaleFactor, pivotX, pivotY);
+//                    mImageMatrix.postScale(scaleFactor, scaleFactor, pivotX, pivotY);
+//                    setImageMatrix(mImageMatrix);
+
+                    scaleFirstPoint.set(afterFirstX, afterFirstY);
+                    scaleSecondPoint.set(afterSecondX, afterSecondY);
+                }
                 if (canDrag) {
                     mImageMatrix.postTranslate(event.getX(0) - firstPoint.x, event.getY(0) - firstPoint.y);
-                    firstPoint.set(event.getX(0), event.getY(0));
                     setImageMatrix(mImageMatrix);
+
+                    firstPoint.set(event.getX(0), event.getY(0));
                 }
                 break;
         }
 
         return true;
+    }
+
+    private void onScale(float scaleFactor, float pivotX, float pivotY) {
+        float scale = getScale();
+        // 控件图片的缩放范围
+        if ((scale < mMaxScale && scaleFactor > 1.0f)
+                || (scale > mBaseScale && scaleFactor < 1.0f)) {
+            if (scale * scaleFactor < mBaseScale) {
+                scaleFactor = mBaseScale / scale;
+            }
+            if (scale * scaleFactor > mMaxScale) {
+                scaleFactor = mMaxScale / scale;
+            }
+            mImageMatrix.postScale(scaleFactor, scaleFactor,
+                    pivotX, pivotY);
+            invisibleCheck();
+            setImageMatrix(mImageMatrix);
+        }
+    }
+
+    private float getScale() {
+        float[] values = new float[9];
+        mImageMatrix.getValues(values);
+        return values[Matrix.MSCALE_X];
+    }
+
+    // 1:1 情况下，图片实际边缘离开控件边缘的像素单位
+    private final float RIGHT_OUT = 400;
+    private final float LEFT_OUT = 300;
+    private final float BOTTOM_OUT = 300;
+    private final float TOP_OUT = 500;
+    private final float VIEW_MEASURE_WIDTH = 672;
+    private final float VIEW_MEASURE_HEIGHT = 750;
+    private boolean ifLeftOut = false;
+    private boolean ifRightOut = false;
+    private boolean ifTopOut = false;
+    private boolean ifBottomOut = false;
+
+    private void invisibleCheck() {
+        RectF rect = getMatrixRectF();
+        float deltaX = 0;
+        float deltaY = 0;
+        if(rect.right / mCurrentScale < RIGHT_OUT) {
+            ifRightOut = true;
+            deltaX = RIGHT_OUT*mCurrentScale - rect.right;
+        }
+        if((VIEW_MEASURE_WIDTH - rect.left) / mCurrentScale < VIEW_MEASURE_WIDTH - LEFT_OUT) {
+            ifLeftOut = true;
+            deltaX = (VIEW_MEASURE_WIDTH - LEFT_OUT)*mCurrentScale-VIEW_MEASURE_WIDTH+rect.left;
+            deltaX = -deltaX;
+        }
+        if((VIEW_MEASURE_HEIGHT - rect.top) / mCurrentScale < VIEW_MEASURE_HEIGHT - TOP_OUT) {
+            ifTopOut = true;
+            deltaY = (VIEW_MEASURE_HEIGHT - TOP_OUT)*mCurrentScale-VIEW_MEASURE_HEIGHT+rect.top;
+            deltaY = -deltaY;
+        }
+        if(rect.bottom / mCurrentScale < BOTTOM_OUT) {
+            ifBottomOut = true;
+            deltaY = BOTTOM_OUT*mCurrentScale - rect.bottom;
+        }
+        mImageMatrix.postTranslate(deltaX, deltaY);
+        setImageMatrix(mImageMatrix);
+    }
+
+    /**
+     * 获得当前图片的宽和高
+     */
+    private RectF getMatrixRectF() {
+        Matrix matrix = mImageMatrix;
+        RectF rectF = new RectF();
+        Drawable d = getDrawable();
+        if (d != null) {
+            rectF.set(0, 0, d.getIntrinsicWidth(), d.getIntrinsicHeight()); // TODO 这句有用吗
+            matrix.mapRect(rectF);
+        }
+        return rectF;
     }
 
 

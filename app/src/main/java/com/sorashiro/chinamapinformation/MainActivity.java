@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private void initSVG() {
         Drawable drawable = new SVGDrawable(new CnSvgBig(this, new CnMap()));
         imgCnMap.setImageDrawable(drawable);
+//        initListener();
     }
 
     private void initListener(){
