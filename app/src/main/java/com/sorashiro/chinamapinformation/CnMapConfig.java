@@ -9,23 +9,26 @@ import android.graphics.Color;
 
 public class CnMapConfig {
 
-    //文本（未实现）
+    // 文本
     private String mText;
-    //文本颜色（未实现）
+    // 文本颜色
     private int   mTextColor;
-    //文本大小
+    // 文本大小
     private int mTextSize;
-    //填充颜色
+    // 设定文本是否与图片一起缩放
+    private boolean mIfTextScale;
+    // 填充颜色
     private int   mFillColor;
-    //边缘颜色
+    // 边缘颜色
     private int   mStrokeColor;
-    //边缘宽度
+    // 边缘宽度
     private int   mStrokeWidth;
 
     public CnMapConfig() {
         this.mText = "Test";
         this.mTextColor = Color.parseColor("#ee82ee");
-        this.mTextSize = 15;
+        this.mTextSize = 30;
+        this.mIfTextScale = true;
         this.mFillColor = Color.parseColor("#66ccff");
         this.mStrokeColor = Color.parseColor("#000000");
         this.mStrokeWidth = 3;
@@ -44,8 +47,17 @@ public class CnMapConfig {
         return mTextColor;
     }
 
-    public CnMapConfig setText(int color) {
+    public CnMapConfig setTextColor(int color) {
         mTextColor = color;
+        return this;
+    }
+
+    public boolean getIfTextScale() {
+        return mIfTextScale;
+    }
+
+    public CnMapConfig setIfTextScale(boolean ifTextScale) {
+        mIfTextScale = ifTextScale;
         return this;
     }
 

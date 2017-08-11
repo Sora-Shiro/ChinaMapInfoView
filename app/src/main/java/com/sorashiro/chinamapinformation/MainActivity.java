@@ -1,17 +1,13 @@
 package com.sorashiro.chinamapinformation;
 
-import android.graphics.Matrix;
-import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.github.megatronking.svg.support.SVGDrawable;
-import com.sorashiro.chinamapinformation.tool.LogAndToastUtil;
 import com.sorashiro.chinamapinformation.view.ChinaMapView;
 
 import butterknife.BindView;
@@ -37,8 +33,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initSVG() {
-        Drawable drawable = new SVGDrawable(new CnSvgBig(this, new CnMap()));
-        imgCnMap.setImageDrawable(drawable);
+        CnMap cnMap = imgCnMap.getCnMap();
+        CnSvgBigRenderer cnSvgBigRenderer = imgCnMap.getCnSvgBigRenderer();
 //        initListener();
     }
 

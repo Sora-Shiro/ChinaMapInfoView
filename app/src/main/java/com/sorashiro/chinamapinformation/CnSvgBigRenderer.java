@@ -2,12 +2,18 @@ package com.sorashiro.chinamapinformation;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.Region;
+import android.graphics.RegionIterator;
 import android.util.Log;
 
 import com.github.megatronking.svg.support.SVGRenderer;
+import com.sorashiro.chinamapinformation.tool.LogAndToastUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -18,7 +24,7 @@ import java.util.HashMap;
  *
  * Modified: SoraShiro
  */
-public class CnSvgBig extends SVGRenderer {
+public class CnSvgBigRenderer extends SVGRenderer {
 
     private String[]                     mProvince;
     private HashMap<String, CnMapConfig> mConfig;
@@ -29,8 +35,10 @@ public class CnSvgBig extends SVGRenderer {
 
     private Paint mTextPaint;
 
+    private Region mGlobalRegion;
 
-    public CnSvgBig(Context context, CnMap cnMap) {
+
+    public CnSvgBigRenderer(Context context, CnMap cnMap) {
         super(context);
         mAlpha = 1.0f;
         mWidth = dip2px(1369.0f);
@@ -38,6 +46,11 @@ public class CnSvgBig extends SVGRenderer {
         mProvince = cnMap.PROVINCE;
         mConfig = cnMap.config;
         //        mPivotX = 100f;
+        rAnHui = new Region();
+    }
+
+    public float getScaleX() {
+        return scaleX;
     }
 
     @Override
@@ -46,6 +59,9 @@ public class CnSvgBig extends SVGRenderer {
         scaleX = w / 1214.0f;
         scaleY = h / 1016.0f;
         final float minScale = Math.min(scaleX, scaleY);
+        LogAndToastUtil.LogV(w + " w : h " + h);
+
+        mGlobalRegion = new Region(-w, -h, w, h);
 
         mPath.reset();
         mRenderPath.reset();
@@ -91,11 +107,19 @@ public class CnSvgBig extends SVGRenderer {
             //TODO 需要重写
             CnMapConfig cnMapConfig = mConfig.get(mProvince[i]);
             mTextPaint.setColor(cnMapConfig.getTextColor());
-            mTextPaint.setTextSize(cnMapConfig.getTextSize());
+            if(cnMapConfig.getIfTextScale()){
+                mTextPaint.setTextSize(cnMapConfig.getTextSize()*scaleX);
+            } else {
+                mTextPaint.setTextSize(cnMapConfig.getTextSize());
+            }
             renderTextByProvince(canvas, cnMapConfig.getText(), i, w, h);
         }
 
     }
+
+    private Region rAnHui;
+    public ArrayList<Region> mRegionList = new ArrayList<>();
+
 
     private void renderGo(Canvas canvas, ColorFilter filter, Paint paint, int i, String text) {
         if (i >= 0 && i <= 8) {
@@ -113,6 +137,27 @@ public class CnSvgBig extends SVGRenderer {
         paint.setStrokeMiter(4.0f);
         paint.setColorFilter(filter);
         canvas.drawPath(mRenderPath, paint);
+
+
+        // Region Test
+        if(i == 0) {
+            rAnHui.setPath(mRenderPath, mGlobalRegion);
+            mRegionList.add(rAnHui);
+            RegionIterator iter = new RegionIterator(rAnHui);
+            Rect r = new Rect();
+
+            Paint p = new Paint();
+            p.setColor(Color.RED);
+            p.setStyle(Paint.Style.FILL);
+            p.setStrokeWidth(2);
+
+            while (iter.next(r)) {
+                canvas.drawRect(r, p);
+            }
+        }
+
+        // Region Test Over
+
         mPath.reset();
         mRenderPath.reset();
 
@@ -122,10 +167,17 @@ public class CnSvgBig extends SVGRenderer {
         mFinalPathMatrix.postScale(scaleX, scaleY);
     }
 
-
     //省份文本绘制
     private void renderTextByProvince(Canvas canvas, String text, int index, int w, int h) {
         switch (index) {
+            case -1:
+                mPath.moveTo(0, 0f);
+                mPath.lineTo(1369f, 0f);
+                mPath.lineTo(1369f, 1141f);
+                mPath.lineTo(0f, 1141f);
+                mPath.lineTo(0f, 0f);
+                mPath.close();
+                mPath.moveTo(0, 0f);
             case 0:
                 canvas.drawText(text, 890 * scaleX, 620 * scaleY, mTextPaint);
                 break;

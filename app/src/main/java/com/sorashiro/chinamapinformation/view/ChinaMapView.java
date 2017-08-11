@@ -8,8 +8,12 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.view.animation.Animation;
 import android.widget.ImageView;
+
+import com.github.megatronking.svg.support.SVGDrawable;
+import com.sorashiro.chinamapinformation.CnMap;
+import com.sorashiro.chinamapinformation.CnSvgBigRenderer;
+import com.sorashiro.chinamapinformation.tool.LogAndToastUtil;
 
 import java.util.LinkedList;
 
@@ -25,9 +29,10 @@ public class ChinaMapView extends ImageView {
     LinkedList<Integer> pointerIdList = new LinkedList<>();
     boolean             canDrag       = false;
     boolean             canScale      = false;
-    RectF mRectF;     // 图片所在区域
+    // 图片所在区域
+    RectF mRectF;
     private Matrix mImageMatrix = new Matrix();
-    PointF firstPoint       = new PointF(0, 0);
+    PointF dragPoint        = new PointF(0, 0);
     PointF scaleFirstPoint  = new PointF(0, 0);
     PointF scaleSecondPoint = new PointF(0, 0);
     int scaleFirstPid;
@@ -37,24 +42,50 @@ public class ChinaMapView extends ImageView {
     private float mCurrentScale;
     private float mMaxScale;
 
+    // 用于设定地图信息
+    private CnMap mCnMap;
+    // 用于获取地图各部分 Region ，之后可能不会设置 get/set 方法
+    private CnSvgBigRenderer mCnSvgBigRenderer;
+
     public ChinaMapView(Context context) {
         super(context, null);
-        init(context);
+        init();
     }
 
     public ChinaMapView(Context context, AttributeSet attrs) {
         super(context, attrs, 0);
-        init(context);
+        init();
     }
 
     public ChinaMapView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init(context);
+        init();
     }
 
-    private void init(Context context) {
+    private void init() {
         super.setScaleType(ScaleType.MATRIX);
         mImageMatrix = new Matrix();
+        mCnMap = new CnMap();
+        mCnSvgBigRenderer = new CnSvgBigRenderer(getContext(), mCnMap);
+        Drawable drawable = new SVGDrawable(mCnSvgBigRenderer);
+        setImageDrawable(drawable);
+        mMapMatrix = new Matrix();
+    }
+
+    public CnMap getCnMap() {
+        return mCnMap;
+    }
+
+    public void setCnMap(CnMap cnMap) {
+        mCnMap = cnMap;
+    }
+
+    public CnSvgBigRenderer getCnSvgBigRenderer() {
+        return mCnSvgBigRenderer;
+    }
+
+    public void setCnSvgBigRenderer(CnSvgBigRenderer cnSvgBigRenderer) {
+        mCnSvgBigRenderer = cnSvgBigRenderer;
     }
 
     @Override
@@ -71,8 +102,12 @@ public class ChinaMapView extends ImageView {
 
         mRectF = new RectF(0, 0, w, h);
 
-        mBaseScale = Math.min(w * 1.0f / dw, h * 1.0f / dh);
+        // 如果图片宽高任意大于控件宽高，则缩小
+        if(dw > w || dh > h) {
+            mBaseScale = Math.min(w * 1.0f / dw, h * 1.0f / dh);
+        }
         mCurrentScale = mBaseScale;
+        // 最多放大 10 倍
         mMaxScale = mBaseScale * 10;
 
         // 将图片移动到手机屏幕的中间位置
@@ -87,22 +122,38 @@ public class ChinaMapView extends ImageView {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+
     }
+
+    int touchFlag = -1;
+    int currentFlag = -1;
+    private Matrix mMapMatrix;
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        float[] pts = new float[2];
+        pts[0] = event.getRawX();
+        pts[1] = event.getRawY();
+        // 根据当前图片矩阵特性转换点击坐标
+        mImageMatrix.invert(mMapMatrix);
+        mMapMatrix.mapPoints(pts);
+        int x = (int) pts[0];
+        int y = (int) pts[1];
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
+                touchFlag = getTouchFlag(x, y);
+                currentFlag = touchFlag;
             case MotionEvent.ACTION_POINTER_DOWN:
                 pointerIdList.add(event.getPointerId(event.getActionIndex()));
                 // 当只有一个手指时，另一个手指按下会触发 ACTION_POINTER_DOWN ，这个时候得到的手指数是 2
                 // 当只有一个手指时才能进行拖动
                 if (event.getPointerCount() == 1 && mRectF.contains((int) event.getX(), (int) event.getY())) {
                     canDrag = true;
-                    firstPoint.set(event.getX(0), event.getY(0));
+                    dragPoint.set(event.getX(0), event.getY(0));
                 } else {
                     canDrag = false;
                 }
+                // 当刚好有两个手指时才能进行缩放
                 if (event.getPointerCount() == 2 && mRectF.contains((int) event.getX(), (int) event.getY())) {
                     canScale = true;
                     scaleFirstPoint.set(event.getX(0), event.getY(0));
@@ -114,6 +165,14 @@ public class ChinaMapView extends ImageView {
                 }
                 break;
             case MotionEvent.ACTION_UP:
+                currentFlag = getTouchFlag(x, y);
+                // 如果手指按下区域和抬起区域相同且不为空，则判断点击事件
+                if (currentFlag == touchFlag && currentFlag != -1) {
+                    if (currentFlag == 0) {
+                        LogAndToastUtil.ToastOut(getContext(), "AnHui is clicked");
+                    }
+                }
+                touchFlag = currentFlag = -1;
             case MotionEvent.ACTION_POINTER_UP:
                 pointerIdList.remove(Integer.valueOf(event.getPointerId(event.getActionIndex())));
                 // 分辨哪个手指留在最后（不进行该处理会造成“瞬移”现象）：
@@ -124,14 +183,16 @@ public class ChinaMapView extends ImageView {
                 if (event.getPointerCount() == 2) {
                     canDrag = true;
                     int index = event.findPointerIndex(pointerIdList.get(0));
-                    firstPoint.set(event.getX(index), event.getY(index));
+                    dragPoint.set(event.getX(index), event.getY(index));
                 }
-                // 小于两个手指时不能放缩
+                // 小于两个手指时不能缩放
                 if (event.getPointerCount() <= 2) {
                     canScale = false;
                 }
                 // 检查是否超出可见区域，如果是那么进行动画让其可见
-                invisibleCheck();
+                if (event.getPointerCount() == 1) {
+                    invisibleCheck();
+                }
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (canScale) {
@@ -164,15 +225,33 @@ public class ChinaMapView extends ImageView {
                     scaleSecondPoint.set(afterSecondX, afterSecondY);
                 }
                 if (canDrag) {
-                    mImageMatrix.postTranslate(event.getX(0) - firstPoint.x, event.getY(0) - firstPoint.y);
+                    mImageMatrix.postTranslate(event.getX(0) - dragPoint.x, event.getY(0) - dragPoint.y);
                     setImageMatrix(mImageMatrix);
 
-                    firstPoint.set(event.getX(0), event.getY(0));
+                    dragPoint.set(event.getX(0), event.getY(0));
                 }
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                touchFlag = -1;
+                currentFlag = -1;
                 break;
         }
 
         return true;
+    }
+
+    private int getTouchFlag(int x, int y) {
+        if(mCnSvgBigRenderer.mRegionList.get(0).contains(x, y)){
+            LogAndToastUtil.LogV("zero");
+            return 0;
+        }
+        LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().top + " : top");
+        LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().bottom + " : bottom");
+        LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().left + " : left");
+        LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().right + " : right");
+        LogAndToastUtil.LogV(x + " x : y " + y);
+        LogAndToastUtil.LogV("-1");
+        return -1;
     }
 
     private void onScale(float scaleFactor, float pivotX, float pivotY) {
@@ -251,5 +330,9 @@ public class ChinaMapView extends ImageView {
         return rectF;
     }
 
+    @Override
+    public void setImageDrawable(Drawable drawable) {
+        super.setImageDrawable(drawable);
 
+    }
 }
