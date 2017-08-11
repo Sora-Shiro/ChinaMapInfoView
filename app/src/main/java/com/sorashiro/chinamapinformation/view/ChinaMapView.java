@@ -1,5 +1,6 @@
 package com.sorashiro.chinamapinformation.view;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -12,6 +13,8 @@ import android.graphics.RegionIterator;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageView;
 
 import com.github.megatronking.svg.support.SVGDrawable;
@@ -68,6 +71,9 @@ public class ChinaMapView extends ImageView {
 
     private void init() {
         super.setScaleType(ScaleType.MATRIX);
+        // Important! 非常重要！
+        setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+
         mImageMatrix = new Matrix();
         mCnMap = new CnMap();
         mCnSvgBigRenderer = new CnSvgBigRenderer(getContext(), mCnMap);
@@ -126,31 +132,16 @@ public class ChinaMapView extends ImageView {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        mPaint.setColor(Color.BLUE);
-        mPaint.setStyle(Paint.Style.FILL);
-        mPaint.setStrokeWidth(20f);
-        canvas.drawPoint(x, y, mPaint);
-
-        RegionIterator iter = new RegionIterator(mCnSvgBigRenderer.mRegionList.get(0));
-        Rect r = new Rect();
-
-        Paint p = new Paint();
-        p.setColor(Color.RED);
-        p.setStyle(Paint.Style.FILL);
-        p.setStrokeWidth(2);
-
-        while (iter.next(r)) {
-            canvas.drawRect(r, p);
-        }
+//        mPaint.setColor(Color.BLUE);
+//        mPaint.setStyle(Paint.Style.FILL);
+//        mPaint.setStrokeWidth(20f);
+//        canvas.drawPoint(x, y, mPaint);
     }
 
     int touchFlag = -1;
     int currentFlag = -1;
     private Matrix mMapMatrix;
-    private float mCurrentTranslateX = 0, mCurrentTranslateY = 0;
-    private int x;
-    private int y;
-    Paint mPaint = new Paint();
+    //    Paint mPaint = new Paint();
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -162,15 +153,14 @@ public class ChinaMapView extends ImageView {
         float[] values = new float[9];
         mImageMatrix.getValues(values);
         mMapMatrix.postScale(values[Matrix.MSCALE_X], values[Matrix.MSCALE_Y]);
-//        mMapMatrix.preTranslate(values[Matrix.MTRANS_X]/values[Matrix.MSCALE_X]*mBaseScale, (values[Matrix.MTRANS_Y]-0.36523008f)/values[Matrix.MSCALE_Y]*mBaseScale);
-        LogAndToastUtil.LogV(values[Matrix.MSCALE_X] + " : scaleX");
-        LogAndToastUtil.LogV(values[Matrix.MTRANS_X] + " : transX");
-        LogAndToastUtil.LogV(values[Matrix.MSCALE_Y] + " : transY");
+//        LogAndToastUtil.LogV(values[Matrix.MSCALE_X] + " : scaleX");
+//        LogAndToastUtil.LogV(values[Matrix.MTRANS_X] + " : transX");
+//        LogAndToastUtil.LogV(values[Matrix.MSCALE_Y] + " : transY");
         mMapMatrix.mapPoints(pts);
-        x = (int) pts[0];
-        y = (int) pts[1];
+        int x = (int) pts[0];
+        int y = (int) pts[1];
         // 测试
-        invalidate();
+//        invalidate();
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
                 touchFlag = getTouchFlag(x, y);
@@ -260,8 +250,8 @@ public class ChinaMapView extends ImageView {
                     float tX = event.getX(0) - dragPoint.x;
                     float tY = event.getY(0) - dragPoint.y;
 
-                    mCurrentTranslateX += tX;
-                    mCurrentTranslateY += tY;
+//                    mCurrentTranslateX += tX;
+//                    mCurrentTranslateY += tY;
 
                     mImageMatrix.postTranslate(tX, tY);
                     setImageMatrix(mImageMatrix);
@@ -279,16 +269,16 @@ public class ChinaMapView extends ImageView {
     }
 
     private int getTouchFlag(int x, int y) {
-        LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().top + " : top");
-        LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().bottom + " : bottom");
-        LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().left + " : left");
-        LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().right + " : right");
-        LogAndToastUtil.LogV(x + " x : y " + y);
+//        LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().top + " : top");
+//        LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().bottom + " : bottom");
+//        LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().left + " : left");
+//        LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().right + " : right");
+//        LogAndToastUtil.LogV(x + " x : y " + y);
         if(mCnSvgBigRenderer.mRegionList.get(0).contains(x, y)){
-            LogAndToastUtil.LogV("zero");
+//            LogAndToastUtil.LogV("zero");
             return 0;
         }
-        LogAndToastUtil.LogV("-1");
+//        LogAndToastUtil.LogV("-1");
         return -1;
     }
 

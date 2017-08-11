@@ -59,7 +59,7 @@ public class CnSvgBigRenderer extends SVGRenderer {
         scaleX = w / 1214.0f;
         scaleY = h / 1016.0f;
         final float minScale = Math.min(scaleX, scaleY);
-        LogAndToastUtil.LogV(w + " w : h " + h);
+//        LogAndToastUtil.LogV(w + " w : h " + h);
 
         mGlobalRegion = new Region(0, 0, w, h);
 
@@ -141,10 +141,10 @@ public class CnSvgBigRenderer extends SVGRenderer {
 
         // Region Test
         if(i == 0) {
-            LogAndToastUtil.LogV(mGlobalRegion.getBounds().top + " : globalTop");
-            LogAndToastUtil.LogV(mGlobalRegion.getBounds().bottom + " : globalBottom");
-            LogAndToastUtil.LogV(mGlobalRegion.getBounds().left + " : globalLeft");
-            LogAndToastUtil.LogV(mGlobalRegion.getBounds().right + " : globalRight");
+//            LogAndToastUtil.LogV(mGlobalRegion.getBounds().top + " : globalTop");
+//            LogAndToastUtil.LogV(mGlobalRegion.getBounds().bottom + " : globalBottom");
+//            LogAndToastUtil.LogV(mGlobalRegion.getBounds().left + " : globalLeft");
+//            LogAndToastUtil.LogV(mGlobalRegion.getBounds().right + " : globalRight");
             rAnHui.setPath(mRenderPath, mGlobalRegion);
 //            LogAndToastUtil.LogV(rAnHui.getBounds().top + " : AnTop");
 //            LogAndToastUtil.LogV(rAnHui.getBounds().bottom + " : AnBottom");
