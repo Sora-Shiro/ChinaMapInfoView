@@ -19,8 +19,8 @@
 
     <com.sorashiro.chinamapinformation.view.ChinaMapView
         android:id="@+id/imgCnMap"
-        android:layout_width="500dp"
-        android:layout_height="500dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_below="@id/textTest"
         />
 </RelativeLayout>

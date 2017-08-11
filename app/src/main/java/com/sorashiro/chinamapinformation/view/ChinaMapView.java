@@ -6,7 +6,9 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.RegionIterator;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -128,6 +130,18 @@ public class ChinaMapView extends ImageView {
         mPaint.setStyle(Paint.Style.FILL);
         mPaint.setStrokeWidth(20f);
         canvas.drawPoint(x, y, mPaint);
+
+        RegionIterator iter = new RegionIterator(mCnSvgBigRenderer.mRegionList.get(0));
+        Rect r = new Rect();
+
+        Paint p = new Paint();
+        p.setColor(Color.RED);
+        p.setStyle(Paint.Style.FILL);
+        p.setStrokeWidth(2);
+
+        while (iter.next(r)) {
+            canvas.drawRect(r, p);
+        }
     }
 
     int touchFlag = -1;
@@ -148,7 +162,7 @@ public class ChinaMapView extends ImageView {
         float[] values = new float[9];
         mImageMatrix.getValues(values);
         mMapMatrix.postScale(values[Matrix.MSCALE_X], values[Matrix.MSCALE_Y]);
-//        mMapMatrix.preTranslate(values[Matrix.MTRANS_X]/values[Matrix.MSCALE_X]*mBaseScale, values[Matrix.MTRANS_Y]/values[Matrix.MSCALE_Y]*mBaseScale);
+//        mMapMatrix.preTranslate(values[Matrix.MTRANS_X]/values[Matrix.MSCALE_X]*mBaseScale, (values[Matrix.MTRANS_Y]-0.36523008f)/values[Matrix.MSCALE_Y]*mBaseScale);
         LogAndToastUtil.LogV(values[Matrix.MSCALE_X] + " : scaleX");
         LogAndToastUtil.LogV(values[Matrix.MTRANS_X] + " : transX");
         LogAndToastUtil.LogV(values[Matrix.MSCALE_Y] + " : transY");
