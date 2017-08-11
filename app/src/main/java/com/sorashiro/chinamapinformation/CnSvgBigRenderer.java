@@ -61,7 +61,7 @@ public class CnSvgBigRenderer extends SVGRenderer {
         final float minScale = Math.min(scaleX, scaleY);
         LogAndToastUtil.LogV(w + " w : h " + h);
 
-        mGlobalRegion = new Region(-w, -h, w, h);
+        mGlobalRegion = new Region(0, 0, w, h);
 
         mPath.reset();
         mRenderPath.reset();
@@ -141,7 +141,15 @@ public class CnSvgBigRenderer extends SVGRenderer {
 
         // Region Test
         if(i == 0) {
+//            LogAndToastUtil.LogV(mGlobalRegion.getBounds().top + " : globalTop");
+//            LogAndToastUtil.LogV(mGlobalRegion.getBounds().bottom + " : globalBottom");
+//            LogAndToastUtil.LogV(mGlobalRegion.getBounds().left + " : globalLeft");
+//            LogAndToastUtil.LogV(mGlobalRegion.getBounds().right + " : globalRight");
             rAnHui.setPath(mRenderPath, mGlobalRegion);
+//            LogAndToastUtil.LogV(rAnHui.getBounds().top + " : AnTop");
+//            LogAndToastUtil.LogV(rAnHui.getBounds().bottom + " : AnBottom");
+//            LogAndToastUtil.LogV(rAnHui.getBounds().left + " : AnLeft");
+//            LogAndToastUtil.LogV(rAnHui.getBounds().right + " : AnRight");
             mRegionList.add(rAnHui);
             RegionIterator iter = new RegionIterator(rAnHui);
             Rect r = new Rect();

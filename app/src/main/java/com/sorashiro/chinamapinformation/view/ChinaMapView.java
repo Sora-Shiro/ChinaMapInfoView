@@ -2,7 +2,9 @@ package com.sorashiro.chinamapinformation.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
@@ -122,23 +124,39 @@ public class ChinaMapView extends ImageView {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
+        mPaint.setColor(Color.BLUE);
+        mPaint.setStyle(Paint.Style.FILL);
+        mPaint.setStrokeWidth(20f);
+        canvas.drawPoint(x, y, mPaint);
     }
 
     int touchFlag = -1;
     int currentFlag = -1;
     private Matrix mMapMatrix;
+    private float mCurrentTranslateX = 0, mCurrentTranslateY = 0;
+    private int x;
+    private int y;
+    Paint mPaint = new Paint();
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float[] pts = new float[2];
-        pts[0] = event.getRawX();
-        pts[1] = event.getRawY();
+        pts[0] = event.getX();
+        pts[1] = event.getY();
         // 根据当前图片矩阵特性转换点击坐标
         mImageMatrix.invert(mMapMatrix);
+        float[] values = new float[9];
+        mImageMatrix.getValues(values);
+        mMapMatrix.postScale(values[Matrix.MSCALE_X], values[Matrix.MSCALE_Y]);
+//        mMapMatrix.preTranslate(values[Matrix.MTRANS_X]/values[Matrix.MSCALE_X]*mBaseScale, values[Matrix.MTRANS_Y]/values[Matrix.MSCALE_Y]*mBaseScale);
+        LogAndToastUtil.LogV(values[Matrix.MSCALE_X] + " : scaleX");
+        LogAndToastUtil.LogV(values[Matrix.MTRANS_X] + " : transX");
+        LogAndToastUtil.LogV(values[Matrix.MSCALE_Y] + " : transY");
         mMapMatrix.mapPoints(pts);
-        int x = (int) pts[0];
-        int y = (int) pts[1];
+        x = (int) pts[0];
+        y = (int) pts[1];
+        // 测试
+        invalidate();
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
                 touchFlag = getTouchFlag(x, y);
@@ -225,7 +243,13 @@ public class ChinaMapView extends ImageView {
                     scaleSecondPoint.set(afterSecondX, afterSecondY);
                 }
                 if (canDrag) {
-                    mImageMatrix.postTranslate(event.getX(0) - dragPoint.x, event.getY(0) - dragPoint.y);
+                    float tX = event.getX(0) - dragPoint.x;
+                    float tY = event.getY(0) - dragPoint.y;
+
+                    mCurrentTranslateX += tX;
+                    mCurrentTranslateY += tY;
+
+                    mImageMatrix.postTranslate(tX, tY);
                     setImageMatrix(mImageMatrix);
 
                     dragPoint.set(event.getX(0), event.getY(0));
@@ -241,15 +265,15 @@ public class ChinaMapView extends ImageView {
     }
 
     private int getTouchFlag(int x, int y) {
-        if(mCnSvgBigRenderer.mRegionList.get(0).contains(x, y)){
-            LogAndToastUtil.LogV("zero");
-            return 0;
-        }
         LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().top + " : top");
         LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().bottom + " : bottom");
         LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().left + " : left");
         LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().right + " : right");
         LogAndToastUtil.LogV(x + " x : y " + y);
+        if(mCnSvgBigRenderer.mRegionList.get(0).contains(x, y)){
+            LogAndToastUtil.LogV("zero");
+            return 0;
+        }
         LogAndToastUtil.LogV("-1");
         return -1;
     }
