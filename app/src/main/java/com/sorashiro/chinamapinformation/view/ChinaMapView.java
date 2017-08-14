@@ -32,6 +32,12 @@ import java.util.LinkedList;
 
 public class ChinaMapView extends ImageView {
 
+    interface ChinaMapViewProvinceListener {
+        void onProvinceClick(int i);
+    }
+
+    ChinaMapViewProvinceListener mChinaMapViewProvinceListener;
+
     // 一个存储所有触摸点 ID 的 List
     LinkedList<Integer> pointerIdList = new LinkedList<>();
     boolean             canDrag       = false;
@@ -67,6 +73,14 @@ public class ChinaMapView extends ImageView {
     public ChinaMapView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
+    }
+
+    public ChinaMapViewProvinceListener getChinaMapViewProvinceListener() {
+        return mChinaMapViewProvinceListener;
+    }
+
+    public void setChinaMapViewProvinceListener(ChinaMapViewProvinceListener chinaMapViewProvinceListener) {
+        mChinaMapViewProvinceListener = chinaMapViewProvinceListener;
     }
 
     private void init() {
@@ -190,8 +204,9 @@ public class ChinaMapView extends ImageView {
                 currentFlag = getTouchFlag(x, y);
                 // 如果手指按下区域和抬起区域相同且不为空，则判断点击事件
                 if (currentFlag == touchFlag && currentFlag != -1) {
-                    if (currentFlag == 0) {
-                        LogAndToastUtil.ToastOut(getContext(), "AnHui is clicked");
+                    LogAndToastUtil.ToastOut(getContext(), mCnMap.PROVINCE[currentFlag] + " is clicked");
+                    if(mChinaMapViewProvinceListener != null) {
+                        mChinaMapViewProvinceListener.onProvinceClick(currentFlag);
                     }
                 }
                 touchFlag = currentFlag = -1;
@@ -269,16 +284,15 @@ public class ChinaMapView extends ImageView {
     }
 
     private int getTouchFlag(int x, int y) {
-//        LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().top + " : top");
-//        LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().bottom + " : bottom");
-//        LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().left + " : left");
-//        LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList.get(0).getBounds().right + " : right");
-//        LogAndToastUtil.LogV(x + " x : y " + y);
-        if(mCnSvgBigRenderer.mRegionList.get(0).contains(x, y)){
-//            LogAndToastUtil.LogV("zero");
-            return 0;
+        LogAndToastUtil.LogV("in");
+        LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList + "");
+        for(int i = 0; i < mCnSvgBigRenderer.mRegionList.size(); i++) {
+            if(mCnSvgBigRenderer.mRegionList.get(i).contains(x, y)){
+                LogAndToastUtil.LogV(i + " : i");
+                return i;
+            }
         }
-//        LogAndToastUtil.LogV("-1");
+        LogAndToastUtil.LogV("no");
         return -1;
     }
 

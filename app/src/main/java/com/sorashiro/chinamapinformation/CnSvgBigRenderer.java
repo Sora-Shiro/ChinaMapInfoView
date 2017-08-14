@@ -11,7 +11,6 @@ import android.graphics.RegionIterator;
 import android.util.Log;
 
 import com.github.megatronking.svg.support.SVGRenderer;
-import com.sorashiro.chinamapinformation.tool.LogAndToastUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,8 +44,9 @@ public class CnSvgBigRenderer extends SVGRenderer {
         mHeight = dip2px(1141.0f);
         mProvince = cnMap.PROVINCE;
         mConfig = cnMap.config;
+        mRegionList = new ArrayList<>();
         //        mPivotX = 100f;
-        rAnHui = new Region();
+//        mRegion = new Region();
     }
 
     public float getScaleX() {
@@ -65,6 +65,7 @@ public class CnSvgBigRenderer extends SVGRenderer {
 
         mPath.reset();
         mRenderPath.reset();
+        mRegionList.clear();
 
         mFinalPathMatrix.setValues(new float[]{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f});
         mFinalPathMatrix.postScale(scaleX, scaleY);
@@ -98,8 +99,8 @@ public class CnSvgBigRenderer extends SVGRenderer {
             mStrokePaint.setStrokeWidth(strokeWidth);
 
 
-            renderGo(canvas, filter, mStrokePaint, i, cnMapConfig.getText());
-            renderGo(canvas, filter, mFillPaint, i, cnMapConfig.getText());
+            renderGo(canvas, filter, mStrokePaint, i);
+            renderGo(canvas, filter, mFillPaint, i);
         }
 
         //new
@@ -117,11 +118,11 @@ public class CnSvgBigRenderer extends SVGRenderer {
 
     }
 
-    private Region rAnHui;
-    public ArrayList<Region> mRegionList = new ArrayList<>();
+    private Region mRegion;
+    public ArrayList<Region> mRegionList;
 
 
-    private void renderGo(Canvas canvas, ColorFilter filter, Paint paint, int i, String text) {
+    private void renderGo(Canvas canvas, ColorFilter filter, Paint paint, int i) {
         if (i >= 0 && i <= 8) {
             renderByProvince1(i);
         } else if (i >= 9 && i <= 19) {
@@ -138,33 +139,12 @@ public class CnSvgBigRenderer extends SVGRenderer {
         paint.setColorFilter(filter);
         canvas.drawPath(mRenderPath, paint);
 
-
-        // Region Test
-        if(i == 0) {
-//            LogAndToastUtil.LogV(mGlobalRegion.getBounds().top + " : globalTop");
-//            LogAndToastUtil.LogV(mGlobalRegion.getBounds().bottom + " : globalBottom");
-//            LogAndToastUtil.LogV(mGlobalRegion.getBounds().left + " : globalLeft");
-//            LogAndToastUtil.LogV(mGlobalRegion.getBounds().right + " : globalRight");
-            rAnHui.setPath(mRenderPath, mGlobalRegion);
-//            LogAndToastUtil.LogV(rAnHui.getBounds().top + " : AnTop");
-//            LogAndToastUtil.LogV(rAnHui.getBounds().bottom + " : AnBottom");
-//            LogAndToastUtil.LogV(rAnHui.getBounds().left + " : AnLeft");
-//            LogAndToastUtil.LogV(rAnHui.getBounds().right + " : AnRight");
-            mRegionList.add(rAnHui);
-            RegionIterator iter = new RegionIterator(rAnHui);
-            Rect r = new Rect();
-
-            Paint p = new Paint();
-            p.setColor(Color.RED);
-            p.setStyle(Paint.Style.FILL);
-            p.setStrokeWidth(2);
-
-            while (iter.next(r)) {
-                canvas.drawRect(r, p);
-            }
+        // Region
+        if(mRegionList.size() == i) {
+            mRegion = new Region();
+            mRegion.setPath(mRenderPath, mGlobalRegion);
+            mRegionList.add(mRegion);
         }
-
-        // Region Test Over
 
         mPath.reset();
         mRenderPath.reset();
