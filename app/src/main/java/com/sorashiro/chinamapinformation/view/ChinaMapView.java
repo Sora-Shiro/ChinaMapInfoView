@@ -177,9 +177,6 @@ public class ChinaMapView extends ImageView {
                 firstDownY = original[1];
                 touchFlag = getTouchFlag(x, y);
                 currentFlag = touchFlag;
-                if(saveColorIndex != -1) {
-                    discolorTouchRegion(saveColorIndex);
-                }
             case MotionEvent.ACTION_POINTER_DOWN:
                 pointerIdList.add(event.getPointerId(event.getActionIndex()));
                 // 当只有一个手指时，另一个手指按下会触发 ACTION_POINTER_DOWN ，这个时候得到的手指数是 2
@@ -297,6 +294,12 @@ public class ChinaMapView extends ImageView {
     private int saveColorIndex = -1;
 
     private void colorTouchRegion(int index) {
+        if(index == saveColorIndex) {
+            return;
+        }
+        if(saveColorIndex != -1) {
+            discolorTouchRegion(saveColorIndex);
+        }
         CnMapConfig config = mCnMap.configMap.get(mCnMap.PROVINCE[index]);
         config.setIfTouch(true);
         resetDrawable();

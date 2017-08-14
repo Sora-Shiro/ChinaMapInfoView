@@ -13,6 +13,8 @@ public class CnMapConfig {
     private String mText;
     // 文本颜色
     private int   mTextColor;
+    // 触摸文本颜色
+    private int mTouchTextColor;
     // 文本大小
     private int mTextSize;
     // 设定文本是否与图片一起缩放
@@ -33,6 +35,7 @@ public class CnMapConfig {
     public CnMapConfig() {
         this.mText = "Test";
         this.mTextColor = Color.parseColor("#ee82ee");
+        this.mTouchTextColor = Color.parseColor("#ffffff");
         this.mTextSize = 30;
         this.mIfTextScale = true;
         this.mFillColor = Color.parseColor("#66ccff");
@@ -58,6 +61,15 @@ public class CnMapConfig {
 
     public CnMapConfig setTextColor(int color) {
         mTextColor = color;
+        return this;
+    }
+
+    public int getTouchTextColor() {
+        return mTouchTextColor;
+    }
+
+    public CnMapConfig setTouchTextColor(int touchTextColor) {
+        mTouchTextColor = touchTextColor;
         return this;
     }
 

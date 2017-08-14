@@ -30,6 +30,11 @@ public class CnSvgBigRenderer extends SVGRenderer {
     private CnMap mCnMap;
 
     private Paint mTextPaint;
+    private Paint mTouchFillPaint;
+    private Paint mTouchStrokePaint;
+    private Paint mTouchTextPaint;
+
+    private int mTouchIndex;
 
     private Region mGlobalRegion;
 
@@ -53,6 +58,7 @@ public class CnSvgBigRenderer extends SVGRenderer {
         Log.v("aaa", "render");
         scaleX = w / 1214.0f;
         scaleY = h / 1016.0f;
+        mTouchIndex = -1;
         final float minScale = Math.min(scaleX, scaleY);
 //        LogAndToastUtil.LogV(w + " w : h " + h);
 
@@ -65,52 +71,72 @@ public class CnSvgBigRenderer extends SVGRenderer {
         mFinalPathMatrix.setValues(new float[]{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f});
         mFinalPathMatrix.postScale(scaleX, scaleY);
 
-        if (mStrokePaint == null) {
-            mStrokePaint = new Paint();
-            mStrokePaint.setStyle(Paint.Style.STROKE);
-            mStrokePaint.setAntiAlias(true);
-        }
-        if (mFillPaint == null) {
-            mFillPaint = new Paint();
-            mFillPaint.setStyle(Paint.Style.FILL);
-            mFillPaint.setAntiAlias(true);
-        }
-        if (mTextPaint == null) {
-            mTextPaint = new Paint();
-            mTextPaint.setStyle(Paint.Style.FILL);
-            mTextPaint.setAntiAlias(true);
-        }
+        mFillPaint = initPaint(Paint.Style.FILL);
+        mStrokePaint = initPaint(Paint.Style.STROKE);
+        mTextPaint = initPaint(Paint.Style.FILL);
+        mTouchFillPaint = initPaint(Paint.Style.FILL);
+        mTouchStrokePaint = initPaint(Paint.Style.STROKE);
+        mTouchTextPaint = initPaint(Paint.Style.FILL);
 
         for (int i = 0; i < 34; i++) {
             //TODO 需要重写
             CnMapConfig cnMapConfig = mConfig.get(mProvince[i]);
-            mFillPaint.setColor(cnMapConfig.getFillColor());
+
             float strokeWidth = cnMapConfig.getStrokeWidth();
             if (strokeWidth < minScale * 1.0f * 1.0f) {
                 strokeWidth = minScale * 1.0f * 1.0f;
             }
-            mFillPaint.setStrokeWidth(strokeWidth);
-            mStrokePaint.setColor(cnMapConfig.getStrokeColor());
             mStrokePaint.setStrokeWidth(strokeWidth);
 
+            if(cnMapConfig.getIfTouch()) {
+                mTouchFillPaint.setColor(cnMapConfig.getTouchColor());
+                mTouchFillPaint.setStrokeWidth(strokeWidth);
+                mTouchStrokePaint.setColor(cnMapConfig.getTouchStrokeColor());
+                mTouchStrokePaint.setStrokeWidth(strokeWidth);
+                mTouchIndex = i;
+            } else {
+                mFillPaint.setColor(cnMapConfig.getFillColor());
+                mFillPaint.setStrokeWidth(strokeWidth);
+                mStrokePaint.setColor(cnMapConfig.getStrokeColor());
+                mStrokePaint.setStrokeWidth(strokeWidth);
+                renderGo(canvas, filter, mStrokePaint, i);
+                renderGo(canvas, filter, mFillPaint, i);
+            }
+        }
 
-            renderGo(canvas, filter, mStrokePaint, i);
-            renderGo(canvas, filter, mFillPaint, i);
+        // 被触摸的最后着色，防止边界被其他省份掩盖
+        if(mTouchIndex != -1) {
+            renderGo(canvas, filter, mTouchFillPaint, mTouchIndex);
+            renderGo(canvas, filter, mTouchStrokePaint, mTouchIndex);
         }
 
         //new
         for (int i = 0; i < 34; i++) {
-            //TODO 需要重写
             CnMapConfig cnMapConfig = mConfig.get(mProvince[i]);
-            mTextPaint.setColor(cnMapConfig.getTextColor());
             if(cnMapConfig.getIfTextScale()){
                 mTextPaint.setTextSize(cnMapConfig.getTextSize()*scaleX);
+                mTouchTextPaint.setTextSize(cnMapConfig.getTextSize()*scaleX);
             } else {
                 mTextPaint.setTextSize(cnMapConfig.getTextSize());
+                mTouchTextPaint.setTextSize(cnMapConfig.getTextSize());
             }
-            renderTextByProvince(canvas, cnMapConfig.getText(), i, w, h);
+            if(cnMapConfig.getIfTouch()) {
+                mTouchTextPaint.setColor(cnMapConfig.getTouchTextColor());
+                renderTextByProvince(canvas, mTouchTextPaint, cnMapConfig.getText(), i, w, h);
+            } else {
+                mTextPaint.setColor(cnMapConfig.getTextColor());
+                renderTextByProvince(canvas, mTextPaint, cnMapConfig.getText(), i, w, h);
+            }
+
         }
 
+    }
+
+    private Paint initPaint(Paint.Style style) {
+        Paint paint = new Paint();
+        paint.setStyle(style);
+        paint.setAntiAlias(true);
+        return paint;
     }
 
     private Region mRegion;
@@ -151,7 +177,7 @@ public class CnSvgBigRenderer extends SVGRenderer {
     }
 
     //省份文本绘制
-    private void renderTextByProvince(Canvas canvas, String text, int index, int w, int h) {
+    private void renderTextByProvince(Canvas canvas, Paint paint, String text, int index, int w, int h) {
         switch (index) {
             case -1:
                 mPath.moveTo(0, 0f);
@@ -162,106 +188,106 @@ public class CnSvgBigRenderer extends SVGRenderer {
                 mPath.close();
                 mPath.moveTo(0, 0f);
             case 0:
-                canvas.drawText(text, 890 * scaleX, 620 * scaleY, mTextPaint);
+                canvas.drawText(text, 890 * scaleX, 620 * scaleY, paint);
                 break;
             case 1:
-                canvas.drawText(text, 870 * scaleX, 420 * scaleY, mTextPaint);
+                canvas.drawText(text, 870 * scaleX, 420 * scaleY, paint);
                 break;
             case 2:
-                canvas.drawText(text, 680 * scaleX, 700 * scaleY, mTextPaint);
+                canvas.drawText(text, 680 * scaleX, 700 * scaleY, paint);
                 break;
             case 3:
-                canvas.drawText(text, 925 * scaleX, 770 * scaleY, mTextPaint);
+                canvas.drawText(text, 925 * scaleX, 770 * scaleY, paint);
                 break;
             case 4:
-                canvas.drawText(text, 460 * scaleX, 420 * scaleY, mTextPaint);
+                canvas.drawText(text, 460 * scaleX, 420 * scaleY, paint);
                 break;
             case 5:
-                canvas.drawText(text, 825 * scaleX, 840 * scaleY, mTextPaint);
+                canvas.drawText(text, 825 * scaleX, 840 * scaleY, paint);
                 break;
             case 6:
-                canvas.drawText(text, 720 * scaleX, 840 * scaleY, mTextPaint);
+                canvas.drawText(text, 720 * scaleX, 840 * scaleY, paint);
                 break;
             case 7:
-                canvas.drawText(text, 669 * scaleX, 770 * scaleY, mTextPaint);
+                canvas.drawText(text, 669 * scaleX, 770 * scaleY, paint);
                 break;
             case 8:
-                canvas.drawText(text, 755 * scaleX, 960 * scaleY, mTextPaint);
+                canvas.drawText(text, 755 * scaleX, 960 * scaleY, paint);
                 break;
             case 9:
-                canvas.drawText(text, 840 * scaleX, 470 * scaleY, mTextPaint);
+                canvas.drawText(text, 840 * scaleX, 470 * scaleY, paint);
                 break;
             case 10:
-                canvas.drawText(text, 1016 * scaleX, 200 * scaleY, mTextPaint);
+                canvas.drawText(text, 1016 * scaleX, 200 * scaleY, paint);
                 break;
             case 11:
-                canvas.drawText(text, 803 * scaleX, 580 * scaleY, mTextPaint);
+                canvas.drawText(text, 803 * scaleX, 580 * scaleY, paint);
                 break;
             case 12:
-                canvas.drawText(text, 900 * scaleX, 900 * scaleY, mTextPaint);
+                canvas.drawText(text, 900 * scaleX, 900 * scaleY, paint);
                 break;
             case 13:
-                canvas.drawText(text, 781 * scaleX, 655 * scaleY, mTextPaint);
+                canvas.drawText(text, 781 * scaleX, 655 * scaleY, paint);
                 break;
             case 14:
-                canvas.drawText(text, 772 * scaleX, 740 * scaleY, mTextPaint);
+                canvas.drawText(text, 772 * scaleX, 740 * scaleY, paint);
                 break;
             case 15:
-                canvas.drawText(text, 930 * scaleX, 575 * scaleY, mTextPaint);
+                canvas.drawText(text, 930 * scaleX, 575 * scaleY, paint);
                 break;
             case 16:
-                canvas.drawText(text, 865 * scaleX, 725 * scaleY, mTextPaint);
+                canvas.drawText(text, 865 * scaleX, 725 * scaleY, paint);
                 break;
             case 17:
-                canvas.drawText(text, 1016 * scaleX, 301 * scaleY, mTextPaint);
+                canvas.drawText(text, 1016 * scaleX, 301 * scaleY, paint);
                 break;
             case 18:
-                canvas.drawText(text, 960 * scaleX, 365 * scaleY, mTextPaint);
+                canvas.drawText(text, 960 * scaleX, 365 * scaleY, paint);
                 break;
             case 19:
-                canvas.drawText(text, 827 * scaleX, 920 * scaleY, mTextPaint);
+                canvas.drawText(text, 827 * scaleX, 920 * scaleY, paint);
                 break;
             case 20:
-                canvas.drawText(text, 618 * scaleX, 420 * scaleY, mTextPaint);
+                canvas.drawText(text, 618 * scaleX, 420 * scaleY, paint);
                 break;
             case 21:
-                canvas.drawText(text, 663 * scaleX, 500 * scaleY, mTextPaint);
+                canvas.drawText(text, 663 * scaleX, 500 * scaleY, paint);
                 break;
             case 22:
-                canvas.drawText(text, 409 * scaleX, 530 * scaleY, mTextPaint);
+                canvas.drawText(text, 409 * scaleX, 530 * scaleY, paint);
                 break;
             case 23:
-                canvas.drawText(text, 700 * scaleX, 585 * scaleY, mTextPaint);
+                canvas.drawText(text, 700 * scaleX, 585 * scaleY, paint);
                 break;
             case 24:
-                canvas.drawText(text, 1027 * scaleX, 620 * scaleY, mTextPaint);
+                canvas.drawText(text, 1027 * scaleX, 620 * scaleY, paint);
                 break;
             case 25:
-                canvas.drawText(text, 890 * scaleX, 510 * scaleY, mTextPaint);
+                canvas.drawText(text, 890 * scaleX, 510 * scaleY, paint);
                 break;
             case 26:
-                canvas.drawText(text, 775 * scaleX, 475 * scaleY, mTextPaint);
+                canvas.drawText(text, 775 * scaleX, 475 * scaleY, paint);
                 break;
             case 27:
-                canvas.drawText(text, 556 * scaleX, 650 * scaleY, mTextPaint);
+                canvas.drawText(text, 556 * scaleX, 650 * scaleY, paint);
                 break;
             case 28:
-                canvas.drawText(text, 1054 * scaleX, 840 * scaleY, mTextPaint);
+                canvas.drawText(text, 1054 * scaleX, 840 * scaleY, paint);
                 break;
             case 29:
-                canvas.drawText(text, 921 * scaleX, 445 * scaleY, mTextPaint);
+                canvas.drawText(text, 921 * scaleX, 445 * scaleY, paint);
                 break;
             case 30:
-                canvas.drawText(text, 149 * scaleX, 400 * scaleY, mTextPaint);
+                canvas.drawText(text, 149 * scaleX, 400 * scaleY, paint);
                 break;
             case 31:
-                canvas.drawText(text, 200 * scaleX, 595 * scaleY, mTextPaint);
+                canvas.drawText(text, 200 * scaleX, 595 * scaleY, paint);
                 break;
             case 32:
-                canvas.drawText(text, 530 * scaleX, 820 * scaleY, mTextPaint);
+                canvas.drawText(text, 530 * scaleX, 820 * scaleY, paint);
                 break;
             case 33:
-                canvas.drawText(text, 967 * scaleX, 680 * scaleY, mTextPaint);
+                canvas.drawText(text, 967 * scaleX, 680 * scaleY, paint);
                 break;
         }
     }
