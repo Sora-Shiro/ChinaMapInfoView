@@ -1,19 +1,18 @@
 package com.sorashiro.chinamapinformation;
 
-import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 
-import com.github.megatronking.svg.support.SVGDrawable;
+import com.sorashiro.chinamapinformation.tool.LogAndToastUtil;
 import com.sorashiro.chinamapinformation.view.ChinaMapView;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ChinaMapView.ChinaMapViewProvinceListener{
 
     @BindView(R2.id.textTest)
     TextView     textTest;
@@ -27,15 +26,15 @@ public class MainActivity extends AppCompatActivity {
 
         ButterKnife.bind(this);
 
-        initSVG();
+        initView();
 
 //        initListener();
     }
 
-    private void initSVG() {
+    private void initView() {
+        imgCnMap.setChinaMapViewProvinceListener(this);
         CnMap cnMap = imgCnMap.getCnMap();
         CnSvgBigRenderer cnSvgBigRenderer = imgCnMap.getCnSvgBigRenderer();
-//        initListener();
     }
 
     private void initListener(){
@@ -55,5 +54,10 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+    }
+
+    @Override
+    public void onProvinceClick(int i) {
+        LogAndToastUtil.ToastOut(this, imgCnMap.getCnMap().PROVINCE[i] + " is clicked");
     }
 }

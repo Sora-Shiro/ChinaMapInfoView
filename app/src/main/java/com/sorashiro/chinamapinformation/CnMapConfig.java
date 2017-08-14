@@ -19,6 +19,8 @@ public class CnMapConfig {
     private boolean mIfTextScale;
     // 填充颜色
     private int   mFillColor;
+    // 触摸颜色
+    private int mTouchColor;
     // 边缘颜色
     private int   mStrokeColor;
     // 边缘宽度
@@ -30,6 +32,7 @@ public class CnMapConfig {
         this.mTextSize = 30;
         this.mIfTextScale = true;
         this.mFillColor = Color.parseColor("#66ccff");
+        this.mTouchColor = Color.parseColor("#00ffff");
         this.mStrokeColor = Color.parseColor("#000000");
         this.mStrokeWidth = 3;
     }
@@ -67,6 +70,15 @@ public class CnMapConfig {
 
     public CnMapConfig setFillColor(int fillColor) {
         mFillColor = fillColor;
+        return this;
+    }
+
+    public int getTouchColor() {
+        return mTouchColor;
+    }
+
+    public CnMapConfig setTouchColor(int touchColor) {
+        mTouchColor = touchColor;
         return this;
     }
 

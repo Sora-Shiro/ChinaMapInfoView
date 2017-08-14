@@ -9,6 +9,7 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Region;
 import android.graphics.RegionIterator;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
@@ -23,6 +24,7 @@ import com.sorashiro.chinamapinformation.CnSvgBigRenderer;
 import com.sorashiro.chinamapinformation.tool.LogAndToastUtil;
 
 import java.util.LinkedList;
+import java.util.Timer;
 
 /**
  * Created by SoraShiro on 2017/8/7.
@@ -32,7 +34,7 @@ import java.util.LinkedList;
 
 public class ChinaMapView extends ImageView {
 
-    interface ChinaMapViewProvinceListener {
+    public interface ChinaMapViewProvinceListener {
         void onProvinceClick(int i);
     }
 
@@ -146,37 +148,34 @@ public class ChinaMapView extends ImageView {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-//        mPaint.setColor(Color.BLUE);
-//        mPaint.setStyle(Paint.Style.FILL);
-//        mPaint.setStrokeWidth(20f);
-//        canvas.drawPoint(x, y, mPaint);
     }
 
     int touchFlag = -1;
     int currentFlag = -1;
     private Matrix mMapMatrix;
-    //    Paint mPaint = new Paint();
+    // 拖动超过一定距离则取消点击事件
+    float firstDownX = -1;
+    float firstDownY = -1;
+    boolean longClick = false;
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        float[] original = new float[2];
         float[] pts = new float[2];
-        pts[0] = event.getX();
-        pts[1] = event.getY();
+        pts[0] = original[0] = event.getX();
+        pts[1] = original[1] = event.getY();
         // 根据当前图片矩阵特性转换点击坐标
         mImageMatrix.invert(mMapMatrix);
         float[] values = new float[9];
         mImageMatrix.getValues(values);
         mMapMatrix.postScale(values[Matrix.MSCALE_X], values[Matrix.MSCALE_Y]);
-//        LogAndToastUtil.LogV(values[Matrix.MSCALE_X] + " : scaleX");
-//        LogAndToastUtil.LogV(values[Matrix.MTRANS_X] + " : transX");
-//        LogAndToastUtil.LogV(values[Matrix.MSCALE_Y] + " : transY");
         mMapMatrix.mapPoints(pts);
         int x = (int) pts[0];
         int y = (int) pts[1];
-        // 测试
-//        invalidate();
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
+                firstDownX = original[0];
+                firstDownY = original[1];
                 touchFlag = getTouchFlag(x, y);
                 currentFlag = touchFlag;
             case MotionEvent.ACTION_POINTER_DOWN:
@@ -204,7 +203,6 @@ public class ChinaMapView extends ImageView {
                 currentFlag = getTouchFlag(x, y);
                 // 如果手指按下区域和抬起区域相同且不为空，则判断点击事件
                 if (currentFlag == touchFlag && currentFlag != -1) {
-                    LogAndToastUtil.ToastOut(getContext(), mCnMap.PROVINCE[currentFlag] + " is clicked");
                     if(mChinaMapViewProvinceListener != null) {
                         mChinaMapViewProvinceListener.onProvinceClick(currentFlag);
                     }
@@ -233,6 +231,8 @@ public class ChinaMapView extends ImageView {
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (canScale) {
+                    touchFlag = -1;
+
                     float afterFirstX = event.getX(event.findPointerIndex(scaleFirstPid));
                     float afterFirstY = event.getY(event.findPointerIndex(scaleFirstPid));
                     float afterSecondX = event.getX(event.findPointerIndex(scaleSecondPid));
@@ -251,22 +251,19 @@ public class ChinaMapView extends ImageView {
                         );
                     float scaleFactor = (float) (afterDistance / beforeDistance);
 
-//                    onScale(scaleFactor, pivotX, pivotY);
-
                     mCurrentScale = scaleFactor;
                     onScale(scaleFactor, pivotX, pivotY);
-//                    mImageMatrix.postScale(scaleFactor, scaleFactor, pivotX, pivotY);
-//                    setImageMatrix(mImageMatrix);
 
                     scaleFirstPoint.set(afterFirstX, afterFirstY);
                     scaleSecondPoint.set(afterSecondX, afterSecondY);
                 }
                 if (canDrag) {
+                    if(Math.abs(firstDownX - original[0]) > 20 ||
+                            Math.abs(firstDownY - original[1]) > 20){
+                        touchFlag = -1;
+                    }
                     float tX = event.getX(0) - dragPoint.x;
                     float tY = event.getY(0) - dragPoint.y;
-
-//                    mCurrentTranslateX += tX;
-//                    mCurrentTranslateY += tY;
 
                     mImageMatrix.postTranslate(tX, tY);
                     setImageMatrix(mImageMatrix);
@@ -284,16 +281,27 @@ public class ChinaMapView extends ImageView {
     }
 
     private int getTouchFlag(int x, int y) {
-        LogAndToastUtil.LogV("in");
-        LogAndToastUtil.LogV(mCnSvgBigRenderer.mRegionList + "");
         for(int i = 0; i < mCnSvgBigRenderer.mRegionList.size(); i++) {
             if(mCnSvgBigRenderer.mRegionList.get(i).contains(x, y)){
                 LogAndToastUtil.LogV(i + " : i");
                 return i;
             }
         }
-        LogAndToastUtil.LogV("no");
         return -1;
+    }
+
+    private void colorTouchRegion(Region region, int color) {
+        RegionIterator iter = new RegionIterator(region);
+        Rect r = new Rect();
+
+        Paint p = new Paint();
+        p.setColor(color);
+        p.setStyle(Paint.Style.FILL);
+        p.setStrokeWidth(2);
+
+        while (iter.next(r)) {
+//            canvas.drawRect(r, p);
+        }
     }
 
     private void onScale(float scaleFactor, float pivotX, float pivotY) {
@@ -321,10 +329,10 @@ public class ChinaMapView extends ImageView {
     }
 
     // 1:1 情况下，图片实际边缘离开控件边缘的像素单位
-    private final float RIGHT_OUT = 400;
+    private final float RIGHT_OUT = 600;
     private final float LEFT_OUT = 300;
-    private final float BOTTOM_OUT = 300;
-    private final float TOP_OUT = 500;
+    private final float BOTTOM_OUT = 500;
+    private final float TOP_OUT = 450;
     private final float VIEW_MEASURE_WIDTH = 672;
     private final float VIEW_MEASURE_HEIGHT = 750;
     private boolean ifLeftOut = false;
@@ -366,7 +374,7 @@ public class ChinaMapView extends ImageView {
         RectF rectF = new RectF();
         Drawable d = getDrawable();
         if (d != null) {
-            rectF.set(0, 0, d.getIntrinsicWidth(), d.getIntrinsicHeight()); // TODO 这句有用吗
+            rectF.set(0, 0, d.getIntrinsicWidth(), d.getIntrinsicHeight());
             matrix.mapRect(rectF);
         }
         return rectF;

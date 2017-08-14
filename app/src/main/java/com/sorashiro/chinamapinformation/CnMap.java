@@ -45,7 +45,7 @@ import java.util.HashMap;
 
 public class CnMap {
 
-    private int length = 34;
+    private final int length = 34;
 
     public String[] PROVINCE = {"Anhui", "Beijing", "Chongqing", "Fujian", "Gansu", "Guangdong",
             "Guangxi", "Guizhou", "Hainan", "Hebei", "Heilongjiang", "Henan", "Hong Kong", "Hubei",

@@ -45,8 +45,6 @@ public class CnSvgBigRenderer extends SVGRenderer {
         mProvince = cnMap.PROVINCE;
         mConfig = cnMap.config;
         mRegionList = new ArrayList<>();
-        //        mPivotX = 100f;
-//        mRegion = new Region();
     }
 
     public float getScaleX() {
