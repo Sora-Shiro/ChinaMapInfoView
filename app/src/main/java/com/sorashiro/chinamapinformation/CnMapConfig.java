@@ -21,6 +21,10 @@ public class CnMapConfig {
     private int   mFillColor;
     // 触摸颜色
     private int mTouchColor;
+    // 触摸边缘颜色
+    private int mTouchStrokeColor;
+    // 是否被触摸
+    private boolean mIfTouch;
     // 边缘颜色
     private int   mStrokeColor;
     // 边缘宽度
@@ -33,6 +37,8 @@ public class CnMapConfig {
         this.mIfTextScale = true;
         this.mFillColor = Color.parseColor("#66ccff");
         this.mTouchColor = Color.parseColor("#00ffff");
+        this.mTouchStrokeColor = Color.parseColor("#ffffff");
+        this.mIfTouch = false;
         this.mStrokeColor = Color.parseColor("#000000");
         this.mStrokeWidth = 3;
     }
@@ -79,6 +85,24 @@ public class CnMapConfig {
 
     public CnMapConfig setTouchColor(int touchColor) {
         mTouchColor = touchColor;
+        return this;
+    }
+
+    public int getTouchStrokeColor() {
+        return mTouchStrokeColor;
+    }
+
+    public CnMapConfig setTouchStrokeColor(int touchStrokeColor) {
+        mTouchStrokeColor = touchStrokeColor;
+        return this;
+    }
+
+    public boolean getIfTouch() {
+        return mIfTouch;
+    }
+
+    public CnMapConfig setIfTouch(boolean ifTouch) {
+        mIfTouch = ifTouch;
         return this;
     }
 

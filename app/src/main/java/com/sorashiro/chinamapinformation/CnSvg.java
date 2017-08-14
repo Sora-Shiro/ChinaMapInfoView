@@ -34,7 +34,7 @@ public class CnSvg extends SVGRenderer {
         mWidth = dip2px(1369.0f);
         mHeight = dip2px(1141.0f);
         mProvince = cnMap.PROVINCE;
-        mConfig = cnMap.config;
+        mConfig = cnMap.configMap;
 //        mPivotX = 100f;
     }
 

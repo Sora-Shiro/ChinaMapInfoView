@@ -53,12 +53,12 @@ public class CnMap {
             "Qinghai", "Shaanxi", "Shanghai", "Shandong", "Shanxi", "Sichuan", "Taiwan", "Tianjin",
             "Xinjiang", "Xizang", "Yunnan", "Zhejiang"};
 
-    public HashMap<String, CnMapConfig> config;
+    public HashMap<String, CnMapConfig> configMap;
 
     public CnMap() {
-        config = new HashMap<>();
+        configMap = new HashMap<>();
         for(String s : PROVINCE) {
-            config.put(s, new CnMapConfig());
+            configMap.put(s, new CnMapConfig());
         }
     }
 

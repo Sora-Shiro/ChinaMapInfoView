@@ -1,30 +1,23 @@
 package com.sorashiro.chinamapinformation.view;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Matrix;
-import android.graphics.Paint;
 import android.graphics.PointF;
-import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Region;
-import android.graphics.RegionIterator;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.ImageView;
 
 import com.github.megatronking.svg.support.SVGDrawable;
 import com.sorashiro.chinamapinformation.CnMap;
+import com.sorashiro.chinamapinformation.CnMapConfig;
 import com.sorashiro.chinamapinformation.CnSvgBigRenderer;
 import com.sorashiro.chinamapinformation.tool.LogAndToastUtil;
 
 import java.util.LinkedList;
-import java.util.Timer;
 
 /**
  * Created by SoraShiro on 2017/8/7.
@@ -92,10 +85,16 @@ public class ChinaMapView extends ImageView {
 
         mImageMatrix = new Matrix();
         mCnMap = new CnMap();
+
+        resetDrawable();
+
+        mMapMatrix = new Matrix();
+    }
+
+    private void resetDrawable() {
         mCnSvgBigRenderer = new CnSvgBigRenderer(getContext(), mCnMap);
         Drawable drawable = new SVGDrawable(mCnSvgBigRenderer);
         setImageDrawable(drawable);
-        mMapMatrix = new Matrix();
     }
 
     public CnMap getCnMap() {
@@ -178,6 +177,9 @@ public class ChinaMapView extends ImageView {
                 firstDownY = original[1];
                 touchFlag = getTouchFlag(x, y);
                 currentFlag = touchFlag;
+                if(saveColorIndex != -1) {
+                    discolorTouchRegion(saveColorIndex);
+                }
             case MotionEvent.ACTION_POINTER_DOWN:
                 pointerIdList.add(event.getPointerId(event.getActionIndex()));
                 // 当只有一个手指时，另一个手指按下会触发 ACTION_POINTER_DOWN ，这个时候得到的手指数是 2
@@ -205,6 +207,8 @@ public class ChinaMapView extends ImageView {
                 if (currentFlag == touchFlag && currentFlag != -1) {
                     if(mChinaMapViewProvinceListener != null) {
                         mChinaMapViewProvinceListener.onProvinceClick(currentFlag);
+
+                        colorTouchRegion(touchFlag);
                     }
                 }
                 touchFlag = currentFlag = -1;
@@ -290,18 +294,22 @@ public class ChinaMapView extends ImageView {
         return -1;
     }
 
-    private void colorTouchRegion(Region region, int color) {
-        RegionIterator iter = new RegionIterator(region);
-        Rect r = new Rect();
+    private int saveColorIndex = -1;
 
-        Paint p = new Paint();
-        p.setColor(color);
-        p.setStyle(Paint.Style.FILL);
-        p.setStrokeWidth(2);
+    private void colorTouchRegion(int index) {
+        CnMapConfig config = mCnMap.configMap.get(mCnMap.PROVINCE[index]);
+        config.setIfTouch(true);
+        resetDrawable();
 
-        while (iter.next(r)) {
-//            canvas.drawRect(r, p);
-        }
+        saveColorIndex = index;
+    }
+
+    private void discolorTouchRegion(int index) {
+        CnMapConfig config = mCnMap.configMap.get(mCnMap.PROVINCE[index]);
+        config.setIfTouch(false);
+        resetDrawable();
+
+        saveColorIndex = -1;
     }
 
     private void onScale(float scaleFactor, float pivotX, float pivotY) {

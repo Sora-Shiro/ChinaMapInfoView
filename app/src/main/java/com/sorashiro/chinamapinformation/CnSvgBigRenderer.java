@@ -2,12 +2,9 @@ package com.sorashiro.chinamapinformation;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.graphics.Region;
-import android.graphics.RegionIterator;
 import android.util.Log;
 
 import com.github.megatronking.svg.support.SVGRenderer;
@@ -43,7 +40,7 @@ public class CnSvgBigRenderer extends SVGRenderer {
         mWidth = dip2px(1369.0f);
         mHeight = dip2px(1141.0f);
         mProvince = cnMap.PROVINCE;
-        mConfig = cnMap.config;
+        mConfig = cnMap.configMap;
         mRegionList = new ArrayList<>();
     }
 
