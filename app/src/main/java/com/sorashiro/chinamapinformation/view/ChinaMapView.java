@@ -208,6 +208,8 @@ public class ChinaMapView extends ImageView {
 
                         colorTouchRegion(touchFlag);
                     }
+                } else if (currentFlag == -1 && saveColorIndex != -1) {
+                    discolorTouchRegion(saveColorIndex);
                 }
                 touchFlag = currentFlag = -1;
             case MotionEvent.ACTION_POINTER_UP:
