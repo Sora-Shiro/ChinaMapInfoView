@@ -31,12 +31,11 @@ import java.util.LinkedList;
 
 /**
  * Created by SoraShiro on 2017/8/7.
- *
+ * <p>
  * Implements ChinaMapViewProvinceListener to interact province click event :)
  *
  * @author Sora Shiro
  * @since 2017/8/7
- *
  */
 
 public class ChinaMapInfoView extends ImageView {

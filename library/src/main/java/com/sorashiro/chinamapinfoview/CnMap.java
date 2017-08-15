@@ -18,9 +18,9 @@ import java.util.HashMap;
 
 /**
  * Created by SoraShiro on 2017/8/7.
- *
+ * <p>
  * Use CnMap.configMap.get(CnMap.PROVINCE[index]) to config different province.
- *
+ * <p>
  * PROVINCE[i] 省/市/自治区/特别行政区
  * 0 安徽
  * 1 北京
@@ -59,7 +59,6 @@ import java.util.HashMap;
  *
  * @author Sora Shiro
  * @since 2017/8/7
- *
  */
 
 public class CnMap {
@@ -74,7 +73,7 @@ public class CnMap {
 
     public CnMap() {
         configMap = new HashMap<>();
-        for(String s : PROVINCE) {
+        for (String s : PROVINCE) {
             configMap.put(s, new CnMapConfig());
         }
     }

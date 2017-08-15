@@ -18,7 +18,7 @@ import android.graphics.Color;
 
 /**
  * Created by SoraShiro on 2017/8/7.
- *
+ * <p>
  * Use CnMap.configMap.get(CnMap.PROVINCE[i]) to config different province.
  *
  * @author Sora Shiro
@@ -28,37 +28,37 @@ import android.graphics.Color;
 public class CnMapConfig {
 
     // 文本
-    private String mText;
+    private String  mText;
     // 文本颜色
-    private int   mTextColor;
-    // 触摸文本颜色
-    private int mTouchTextColor;
+    private int     mTextColor;
+    // 高亮文本颜色
+    private int     mHighlightTextColor;
     // 文本大小
-    private int mTextSize;
+    private int     mTextSize;
     // 设定文本是否与图片一起缩放
     private boolean mIfTextScale;
     // 填充颜色
-    private int   mFillColor;
-    // 触摸颜色
-    private int mTouchColor;
-    // 触摸边缘颜色
-    private int mTouchStrokeColor;
+    private int     mFillColor;
+    // 高亮颜色
+    private int     mHighlightColor;
+    // 高亮边缘颜色
+    private int     mHighlightStrokeColor;
     // 是否被触摸
     private boolean mIfTouch;
     // 边缘颜色
-    private int   mStrokeColor;
+    private int     mStrokeColor;
     // 边缘宽度
-    private int   mStrokeWidth;
+    private int     mStrokeWidth;
 
     public CnMapConfig() {
         this.mText = "";
         this.mTextColor = Color.parseColor("#ee82ee");
-        this.mTouchTextColor = Color.parseColor("#000000");
+        this.mHighlightTextColor = Color.parseColor("#000000");
         this.mTextSize = 30;
         this.mIfTextScale = true;
         this.mFillColor = Color.parseColor("#66ccff");
-        this.mTouchColor = Color.parseColor("#8EDBFF");
-        this.mTouchStrokeColor = Color.parseColor("#ffffff");
+        this.mHighlightColor = Color.parseColor("#8EDBFF");
+        this.mHighlightStrokeColor = Color.parseColor("#ffffff");
         this.mIfTouch = false;
         this.mStrokeColor = Color.parseColor("#000000");
         this.mStrokeWidth = 3;
@@ -82,12 +82,12 @@ public class CnMapConfig {
         return this;
     }
 
-    public int getTouchTextColor() {
-        return mTouchTextColor;
+    public int getHighlightTextColor() {
+        return mHighlightTextColor;
     }
 
-    public CnMapConfig setTouchTextColor(int touchTextColor) {
-        mTouchTextColor = touchTextColor;
+    public CnMapConfig setHighlightTextColor(int highlightTextColor) {
+        mHighlightTextColor = highlightTextColor;
         return this;
     }
 
@@ -109,29 +109,29 @@ public class CnMapConfig {
         return this;
     }
 
-    public int getTouchColor() {
-        return mTouchColor;
+    public int getHighlightColor() {
+        return mHighlightColor;
     }
 
-    public CnMapConfig setTouchColor(int touchColor) {
-        mTouchColor = touchColor;
+    public CnMapConfig setHighlightColor(int highlightColor) {
+        mHighlightColor = highlightColor;
         return this;
     }
 
-    public int getTouchStrokeColor() {
-        return mTouchStrokeColor;
+    public int getHighlightStrokeColor() {
+        return mHighlightStrokeColor;
     }
 
-    public CnMapConfig setTouchStrokeColor(int touchStrokeColor) {
-        mTouchStrokeColor = touchStrokeColor;
+    public CnMapConfig setHighlightStrokeColor(int highlightStrokeColor) {
+        mHighlightStrokeColor = highlightStrokeColor;
         return this;
     }
 
-    public boolean getIfTouch() {
+    protected boolean getIfTouch() {
         return mIfTouch;
     }
 
-    public CnMapConfig setIfTouch(boolean ifTouch) {
+    protected CnMapConfig setIfTouch(boolean ifTouch) {
         mIfTouch = ifTouch;
         return this;
     }
