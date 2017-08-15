@@ -60,9 +60,9 @@ dependencies {
     testCompile 'junit:junit:4.12'
 
     // Library
-    compile project(':library')
+//    compile project(':library')
     // ChinaMapInfoView
-//    compile 'com.sorashiro.ChinaMapInfoView:library:1.0.0'
+    compile 'com.sorashiro.ChinaMapInfoView:library:1.0.1'
 
     // ButterKnife
     compile 'com.jakewharton:butterknife:8.5.1'
