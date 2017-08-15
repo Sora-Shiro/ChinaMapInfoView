@@ -108,7 +108,7 @@ CnMapConfig configAnhui = cnConfigMap.get(cnMap.PROVINCE[0]);
 // 支持链式调用（方法链）
 configAnhui
         .setFillColor(Color.parseColor("#ee0000"))
-        .setHighlightColor(Color.parseColor("#99fffff"));
+        .setHighlightColor(Color.parseColor("#99ffff"));
 ```
 
 # Todo
