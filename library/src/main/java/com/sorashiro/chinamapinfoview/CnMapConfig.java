@@ -1,10 +1,28 @@
-package com.sorashiro.chinamapinformation;
+/*
+ * Copyright (C) 2017, Sora Shiro (https://github.com/Sora-Shiro)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+package com.sorashiro.chinamapinfoview;
 
 import android.graphics.Color;
 
 /**
  * Created by SoraShiro on 2017/8/7.
  *
+ * Use CnMap.configMap.get(CnMap.PROVINCE[i]) to config different province.
+ *
+ * @author Sora Shiro
+ * @since 2017/8/7
  */
 
 public class CnMapConfig {
@@ -33,13 +51,13 @@ public class CnMapConfig {
     private int   mStrokeWidth;
 
     public CnMapConfig() {
-        this.mText = "Test";
+        this.mText = "";
         this.mTextColor = Color.parseColor("#ee82ee");
-        this.mTouchTextColor = Color.parseColor("#ffffff");
+        this.mTouchTextColor = Color.parseColor("#000000");
         this.mTextSize = 30;
         this.mIfTextScale = true;
         this.mFillColor = Color.parseColor("#66ccff");
-        this.mTouchColor = Color.parseColor("#00ffff");
+        this.mTouchColor = Color.parseColor("#8EDBFF");
         this.mTouchStrokeColor = Color.parseColor("#ffffff");
         this.mIfTouch = false;
         this.mStrokeColor = Color.parseColor("#000000");

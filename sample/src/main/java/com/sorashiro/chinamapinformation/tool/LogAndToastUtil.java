@@ -6,7 +6,7 @@ import android.widget.Toast;
 
 /**
  * @author Sora
- * @date 2016/11/5
+ * @since 2016/11/5
  * <p>
  * A util class about debug and toast.
  * Too lazy to produce this class.

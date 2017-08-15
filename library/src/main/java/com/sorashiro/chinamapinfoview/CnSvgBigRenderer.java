@@ -1,11 +1,24 @@
-package com.sorashiro.chinamapinformation;
+/*
+ * Copyright (C) 2017, Sora Shiro (https://github.com/Sora-Shiro)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+package com.sorashiro.chinamapinfoview;
 
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Region;
-import android.util.Log;
 
 import com.github.megatronking.svg.support.SVGRenderer;
 
@@ -19,6 +32,12 @@ import java.util.HashMap;
  * SVG-Generator. It should not be modified by hand.
  *
  * Modified: SoraShiro
+ *
+ * 使用技术：https://github.com/MegatronKing/SVG-Android/blob/master/README.zh-cn.md
+ * 不使用 VectorDrawable，兼容 Android 4.0+
+ *
+ * @since 2017/8/7
+ *
  */
 public class CnSvgBigRenderer extends SVGRenderer {
 
@@ -37,6 +56,8 @@ public class CnSvgBigRenderer extends SVGRenderer {
     private int mTouchIndex;
 
     private Region mGlobalRegion;
+    private Region mRegion;
+    public ArrayList<Region> mRegionList;
 
 
     public CnSvgBigRenderer(Context context, CnMap cnMap) {
@@ -52,18 +73,12 @@ public class CnSvgBigRenderer extends SVGRenderer {
         }
     }
 
-    public float getScaleX() {
-        return scaleX;
-    }
-
     @Override
     public void render(Canvas canvas, int w, int h, ColorFilter filter) {
-        Log.v("aaa", "render");
         scaleX = w / 1214.0f;
         scaleY = h / 1016.0f;
         mTouchIndex = -1;
         final float minScale = Math.min(scaleX, scaleY);
-//        LogAndToastUtil.LogV(w + " w : h " + h);
 
         mGlobalRegion = new Region(0, 0, w, h);
 
@@ -80,8 +95,8 @@ public class CnSvgBigRenderer extends SVGRenderer {
         mTouchStrokePaint = initPaint(Paint.Style.STROKE);
         mTouchTextPaint = initPaint(Paint.Style.FILL);
 
+        // 根据设定绘制省份
         for (int i = 0; i < 34; i++) {
-            //TODO 需要重写
             CnMapConfig cnMapConfig = mConfig.get(mProvince[i]);
 
             float strokeWidth = cnMapConfig.getStrokeWidth();
@@ -112,7 +127,7 @@ public class CnSvgBigRenderer extends SVGRenderer {
             renderGo(canvas, filter, mTouchStrokePaint, mTouchIndex);
         }
 
-        //new
+        // 绘制文字
         for (int i = 0; i < 34; i++) {
             CnMapConfig cnMapConfig = mConfig.get(mProvince[i]);
             if(cnMapConfig.getIfTextScale()){
@@ -140,9 +155,6 @@ public class CnSvgBigRenderer extends SVGRenderer {
         paint.setAntiAlias(true);
         return paint;
     }
-
-    private Region mRegion;
-    public ArrayList<Region> mRegionList;
 
 
     private void renderGo(Canvas canvas, ColorFilter filter, Paint paint, int i) {

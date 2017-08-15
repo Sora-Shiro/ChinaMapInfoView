@@ -1,11 +1,27 @@
-package com.sorashiro.chinamapinformation;
+/*
+ * Copyright (C) 2017, Sora Shiro (https://github.com/Sora-Shiro)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+package com.sorashiro.chinamapinfoview;
 
 import java.util.HashMap;
 
 /**
  * Created by SoraShiro on 2017/8/7.
  *
- * PROVINCE[index] 省/市/自治区/特别行政区
+ * Use CnMap.configMap.get(CnMap.PROVINCE[index]) to config different province.
+ *
+ * PROVINCE[i] 省/市/自治区/特别行政区
  * 0 安徽
  * 1 北京
  * 2 重庆
@@ -40,6 +56,9 @@ import java.util.HashMap;
  * 31 西藏
  * 32 云南
  * 33 浙江
+ *
+ * @author Sora Shiro
+ * @since 2017/8/7
  *
  */
 
