@@ -47,6 +47,9 @@ public class CnSvgBigRenderer extends SVGRenderer {
         mProvince = cnMap.PROVINCE;
         mConfig = cnMap.configMap;
         mRegionList = new ArrayList<>();
+        for (String aPROVINCE : cnMap.PROVINCE) {
+            mRegionList.add(new Region());
+        }
     }
 
     public float getScaleX() {
@@ -66,7 +69,6 @@ public class CnSvgBigRenderer extends SVGRenderer {
 
         mPath.reset();
         mRenderPath.reset();
-        mRegionList.clear();
 
         mFinalPathMatrix.setValues(new float[]{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f});
         mFinalPathMatrix.postScale(scaleX, scaleY);
@@ -161,11 +163,9 @@ public class CnSvgBigRenderer extends SVGRenderer {
         canvas.drawPath(mRenderPath, paint);
 
         // Region
-        if(mRegionList.size() == i) {
-            mRegion = new Region();
-            mRegion.setPath(mRenderPath, mGlobalRegion);
-            mRegionList.add(mRegion);
-        }
+        mRegion = mRegionList.get(i);
+        mRegion.setPath(mRenderPath, mGlobalRegion);
+        mRegionList.set(i, mRegion);
 
         mPath.reset();
         mRenderPath.reset();

@@ -176,6 +176,7 @@ public class ChinaMapView extends ImageView {
                 firstDownX = original[0];
                 firstDownY = original[1];
                 touchFlag = getTouchFlag(x, y);
+                LogAndToastUtil.LogV(touchFlag + " : touchFlag");
                 currentFlag = touchFlag;
             case MotionEvent.ACTION_POINTER_DOWN:
                 pointerIdList.add(event.getPointerId(event.getActionIndex()));
