@@ -1,8 +1,12 @@
 # ChinaMapInfoView
 
-Used to show China geographic information.
+This is a China map that can be translated and scaled. You can use it to visually display statistics based on provinces, such as the birth rate in each province, the monthly maximum temperature in the provinces.
 
-用于显示中国地理信息。
+这是一个可移动、缩放的中国地图，开发者可以使用它来直观显示基于省的统计数据，如各省某年人口出生率、各省每月最高气温等。
+
+Implement the interface included the province onClick event callback so you can use it to jump to the Activity that displays the province's detailed data.
+
+实现了省份点击事件回调的接口，可以用来跳转到显示该省详细数据的 Activity。
 
 Use  [SVG-Android](https://github.com/MegatronKing/SVG-Android/blob/master/README.zh-cn.md) to generate Drawable, API 14 (Android 4.0)+ supported.
 
@@ -38,7 +42,7 @@ Supporting:
 <dependency>
   <groupId>com.sorashiro.ChinaMapInfoView</groupId>
   <artifactId>library</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <type>pom</type>
 </dependency>
 ```
