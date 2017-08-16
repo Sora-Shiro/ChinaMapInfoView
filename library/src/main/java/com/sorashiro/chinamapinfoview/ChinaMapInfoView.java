@@ -20,6 +20,9 @@ import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -43,6 +46,7 @@ public class ChinaMapInfoView extends ImageView {
     // Context 只要实现该接口就可以处理区域点击事件了
     public interface ChinaMapViewProvinceListener {
         void onProvinceClick(int i);
+        void onProvinceLongClick(int i);
     }
 
     ChinaMapViewProvinceListener mChinaMapViewProvinceListener;
@@ -71,7 +75,7 @@ public class ChinaMapInfoView extends ImageView {
 
     // 用于设定地图信息
     private CnMap            mCnMap;
-    // 用于获取地图各部分 Region ，之后可能不会设置 get/set 方法
+    // 用于获取地图各部分 Region
     private CnSvgBigRenderer mCnSvgBigRenderer;
 
     public ChinaMapInfoView(Context context) {
@@ -129,14 +133,13 @@ public class ChinaMapInfoView extends ImageView {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        // 获取控件的宽度和高度
-        // 获取到ImageView对应图片的宽度和高度
+        // 获取到对应图片的宽度和高度
         Drawable d = getDrawable();
         if (null == d) {
             return;
         }
-        int dw = d.getIntrinsicWidth();// 图片固有宽度
-        int dh = d.getIntrinsicHeight();// 图片固有高度
+        int dw = d.getIntrinsicWidth();
+        int dh = d.getIntrinsicHeight();
 
         mRectF = new RectF(0, 0, w, h);
 
@@ -148,7 +151,7 @@ public class ChinaMapInfoView extends ImageView {
         // 最多放大 10 倍
         mMaxScale = mBaseScale * 10;
 
-        // 将图片移动到手机屏幕的中间位置
+        // 将图片移动到 view 的中间位置
         float dx = w / 2 - dw / 2;
         float dy = h / 2 - dh / 2;
         mImageMatrix.postTranslate(dx, dy);
@@ -163,15 +166,15 @@ public class ChinaMapInfoView extends ImageView {
     }
 
     // 记录触碰到的省份区域
-    int touchFlag   = -1;
+    int saveTouchFlag    = -1;
     // 记录按下时的省份区域
-    int currentFlag = -1;
+    int currentTouchFlag = -1;
     private Matrix mMapMatrix;
     // 记录拖动点，拖动超过一定距离则取消点击事件
     float   firstDownX = -1;
     float   firstDownY = -1;
-    // 长按功能，尚未实现
-    boolean longClick  = false;
+    // 长按功能实现
+    LongClickRunnable mLongClickRunnable;
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -188,11 +191,26 @@ public class ChinaMapInfoView extends ImageView {
         int x = (int) pts[0];
         int y = (int) pts[1];
         switch (event.getActionMasked()) {
+            // 任何新的手指加入、移动、离开都会取消旧长按事件
             case MotionEvent.ACTION_DOWN:
+                if(mLongClickRunnable != null) {
+                    mLongClickRunnable.cancelLongClick();
+                }
                 firstDownX = original[0];
                 firstDownY = original[1];
-                touchFlag = getTouchFlag(x, y);
-                currentFlag = touchFlag;
+                currentTouchFlag = getTouchFlag(x, y);
+                // 第一个手指按下，如果手指不在高亮区域而且已经有高亮区域，取消该高亮区域
+                // 但这个功能在缩放的时候体验不好，故取消该功能
+//                if(currentTouchFlag != saveHighlightIndex && saveHighlightIndex != -1) {
+//                    disHighlightRegion(saveHighlightIndex, saveHighlightMode);
+//                }
+                saveTouchFlag = currentTouchFlag;
+                // 点到了省份才开始长按判断线程
+                if(currentTouchFlag != -1) {
+                    mLongClickRunnable = new LongClickRunnable(currentTouchFlag);
+                    Thread longClickThread = new Thread(mLongClickRunnable);
+                    longClickThread.start();
+                }
             case MotionEvent.ACTION_POINTER_DOWN:
                 pointerIdList.add(event.getPointerId(event.getActionIndex()));
                 // 当只有一个手指时，另一个手指按下会触发 ACTION_POINTER_DOWN ，这个时候得到的手指数是 2
@@ -202,6 +220,9 @@ public class ChinaMapInfoView extends ImageView {
                     dragPoint.set(event.getX(0), event.getY(0));
                 } else {
                     canDrag = false;
+                    if(mLongClickRunnable != null) {
+                        mLongClickRunnable.cancelLongClick();
+                    }
                 }
                 // 当刚好有两个手指时才能进行缩放
                 if (event.getPointerCount() == 2 && mRectF.contains((int) event.getX(), (int) event.getY())) {
@@ -215,18 +236,21 @@ public class ChinaMapInfoView extends ImageView {
                 }
                 break;
             case MotionEvent.ACTION_UP:
-                currentFlag = getTouchFlag(x, y);
-                // 如果手指按下区域和抬起区域相同且不为空，则判断点击事件
-                if (currentFlag == touchFlag && currentFlag != -1) {
-                    if (mChinaMapViewProvinceListener != null) {
-                        mChinaMapViewProvinceListener.onProvinceClick(currentFlag);
-
-                        colorTouchRegion(touchFlag);
-                    }
-                } else if (currentFlag == -1 && saveColorIndex != -1) {
-                    discolorTouchRegion(saveColorIndex);
+                if(mLongClickRunnable != null) {
+                    mLongClickRunnable.cancelLongClick();
                 }
-                touchFlag = currentFlag = -1;
+                currentTouchFlag = getTouchFlag(x, y);
+                // 如果手指按下区域和抬起区域相同且不为空，则判断为点击事件
+                if (currentTouchFlag == saveTouchFlag && currentTouchFlag != -1) {
+                    if (mChinaMapViewProvinceListener != null) {
+                        mChinaMapViewProvinceListener.onProvinceClick(currentTouchFlag);
+
+                        highlightRegion(currentTouchFlag, HIGHLIGHT_CLICK);
+                    }
+                } else if(currentTouchFlag == -1 && saveHighlightIndex != -1){
+                    disHighlightRegion(saveHighlightIndex, saveHighlightMode);
+                }
+                saveTouchFlag = currentTouchFlag = -1;
             case MotionEvent.ACTION_POINTER_UP:
                 pointerIdList.remove(Integer.valueOf(event.getPointerId(event.getActionIndex())));
                 // 分辨哪个手指留在最后（不进行该处理会造成“瞬移”现象）：
@@ -250,7 +274,7 @@ public class ChinaMapInfoView extends ImageView {
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (canScale) {
-                    touchFlag = -1;
+                    saveTouchFlag = -1;
                     // 根据两指的始末距离不断计算缩放比例
                     float afterFirstX = event.getX(event.findPointerIndex(scaleFirstPid));
                     float afterFirstY = event.getY(event.findPointerIndex(scaleFirstPid));
@@ -277,10 +301,13 @@ public class ChinaMapInfoView extends ImageView {
                     scaleSecondPoint.set(afterSecondX, afterSecondY);
                 }
                 if (canDrag) {
-                    // x 或 y 方向移动大于 20 像素时取消点击效果
+                    // x 或 y 方向移动大于 20 像素时取消点击 / 长按效果
                     if (Math.abs(firstDownX - original[0]) > 20 ||
                             Math.abs(firstDownY - original[1]) > 20) {
-                        touchFlag = -1;
+                        saveTouchFlag = -1;
+                        if(mLongClickRunnable != null) {
+                            mLongClickRunnable.cancelLongClick();
+                        }
                     }
                     float tX = event.getX(0) - dragPoint.x;
                     float tY = event.getY(0) - dragPoint.y;
@@ -293,8 +320,11 @@ public class ChinaMapInfoView extends ImageView {
                 }
                 break;
             case MotionEvent.ACTION_CANCEL:
-                touchFlag = -1;
-                currentFlag = -1;
+                saveTouchFlag = -1;
+                currentTouchFlag = -1;
+                if(mLongClickRunnable != null) {
+                    mLongClickRunnable.cancelLongClick();
+                }
                 break;
         }
 
@@ -311,32 +341,115 @@ public class ChinaMapInfoView extends ImageView {
         return -1;
     }
 
-    // 存储已被点击到的高亮区域，同一时间只能有一个区域被高亮
-    private int saveColorIndex = -1;
+    // 存储已被高亮的区域信息，同一时刻只能有一个区域被高亮
+    private int              saveHighlightIndex   = -1;
+    private int              saveHighlightMode    = -1;
+    // 高亮模式：点击 / 长按
+    private static final int HIGHLIGHT_CLICK      = 0;
+    private static final int HIGHLIGHT_LONG_CLICK = 1;
 
     // 高亮某一区域
-    private void colorTouchRegion(int index) {
-        if (index == saveColorIndex) {
+    private void highlightRegion(int index, int mode) {
+        if (index == saveHighlightIndex && mode == saveHighlightMode) {
             return;
         }
-        if (saveColorIndex != -1) {
-            discolorTouchRegion(saveColorIndex);
+        if (saveHighlightIndex != -1) {
+            disHighlightRegion(saveHighlightIndex, saveHighlightMode);
         }
         CnMapConfig config = mCnMap.configMap.get(mCnMap.PROVINCE[index]);
-        config.setIfTouch(true);
-        resetDrawable();
+        switch (mode) {
+            case HIGHLIGHT_CLICK:
+                config.setIfClick(true);
+                break;
+            case HIGHLIGHT_LONG_CLICK:
+                config.setIfLongClick(true);
+                break;
+        }
+        saveHighlightMode = mode;
+        saveHighlightIndex = index;
 
-        saveColorIndex = index;
+        resetDrawable();
     }
 
     // 取消高亮某一区域
-    private void discolorTouchRegion(int index) {
+    private void disHighlightRegion(int index, int mode) {
         CnMapConfig config = mCnMap.configMap.get(mCnMap.PROVINCE[index]);
-        config.setIfTouch(false);
-        resetDrawable();
+        switch (mode) {
+            case HIGHLIGHT_CLICK:
+                config.setIfClick(false);
+                break;
+            case HIGHLIGHT_LONG_CLICK:
+                config.setIfLongClick(false);
+                break;
+        }
+        saveHighlightMode = -1;
+        saveHighlightIndex = -1;
 
-        saveColorIndex = -1;
+        resetDrawable();
     }
+
+    private class LongClickRunnable implements Runnable {
+
+        // 应该被长按高亮的位置
+        private int index;
+        // 延时一定时间后是否继续
+        private boolean ifContinue;
+
+        LongClickRunnable(int i) {
+            index = i;
+            ifContinue = true;
+        }
+
+        @Override
+        public void run() {
+            Looper.prepare();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                return ;
+            }
+            if(ifContinue) {
+                // 既然触发了长按，自然不能触发点击事件
+                saveTouchFlag = -1;
+
+                Message disColorMsg = new Message();
+                disColorMsg.what = 0;
+                mLongClickHandler.sendMessage(disColorMsg);
+
+                Message onLongClickMsg = new Message();
+                onLongClickMsg.what = 1;
+                onLongClickMsg.arg1 = index;
+                mLongClickHandler.sendMessage(onLongClickMsg);
+            }
+        }
+
+        // 取消该长按事件
+        void cancelLongClick() {
+            ifContinue = false;
+        }
+
+    }
+
+    private Handler mLongClickHandler = new Handler() {
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case 0:
+                    if(saveHighlightIndex != -1) {
+                        disHighlightRegion(saveHighlightIndex, saveHighlightMode);
+                    }
+                    break;
+                case 1:
+                    mChinaMapViewProvinceListener.onProvinceLongClick(msg.arg1);
+                    highlightRegion(msg.arg1, HIGHLIGHT_LONG_CLICK);
+                    saveHighlightIndex = msg.arg1;
+                    break;
+            }
+        }
+
+    };
 
     // 缩放处理函数
     private void onScale(float scaleFactor, float pivotX, float pivotY) {

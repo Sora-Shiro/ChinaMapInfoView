@@ -40,13 +40,18 @@ public class MainActivity extends AppCompatActivity implements ChinaMapInfoView.
         CnMapConfig configAnhui = cnConfigMap.get(cnMap.PROVINCE[0]);
         // support method chaining
         // 支持链式调用（方法链）
-        configAnhui
-                .setFillColor(Color.parseColor("#ee0000"))
-                .setHighlightColor(Color.parseColor("#99ffff"));
+//        configAnhui
+//                .setFillColor(Color.parseColor("#ee0000"))
+//                .setClickColor(Color.parseColor("#99ffff"));
     }
 
     @Override
     public void onProvinceClick(int i) {
         LogAndToastUtil.ToastOut(this, imgCnMap.getCnMap().PROVINCE[i] + " is clicked");
+    }
+
+    @Override
+    public void onProvinceLongClick(int i) {
+        LogAndToastUtil.ToastOut(this, imgCnMap.getCnMap().PROVINCE[i] + " is long clicked");
     }
 }

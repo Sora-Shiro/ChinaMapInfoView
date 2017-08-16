@@ -31,20 +31,28 @@ public class CnMapConfig {
     private String  mText;
     // 文本颜色
     private int     mTextColor;
-    // 高亮文本颜色
-    private int     mHighlightTextColor;
+    // 点击文本颜色
+    private int     mClickTextColor;
+    // 长按文本颜色
+    private int     mLongClickTextColor;
     // 文本大小
     private int     mTextSize;
     // 设定文本是否与图片一起缩放
     private boolean mIfTextScale;
     // 填充颜色
     private int     mFillColor;
-    // 高亮颜色
-    private int     mHighlightColor;
-    // 高亮边缘颜色
-    private int     mHighlightStrokeColor;
-    // 是否被触摸
-    private boolean mIfTouch;
+    // 点击颜色
+    private int     mClickColor;
+    // 点击边缘颜色
+    private int     mClickStrokeColor;
+    // 长按颜色
+    private int     mLongClickColor;
+    // 长按边缘颜色
+    private int     mLongClickStrokeColor;
+    // 是否被点击
+    private boolean mIfClick;
+    // 是否被长按
+    private boolean mIfLongClick;
     // 边缘颜色
     private int     mStrokeColor;
     // 边缘宽度
@@ -53,13 +61,17 @@ public class CnMapConfig {
     public CnMapConfig() {
         this.mText = "";
         this.mTextColor = Color.parseColor("#ee82ee");
-        this.mHighlightTextColor = Color.parseColor("#000000");
+        this.mClickTextColor = Color.parseColor("#000000");
+        this.mLongClickTextColor = Color.parseColor("#000000");
         this.mTextSize = 30;
         this.mIfTextScale = true;
         this.mFillColor = Color.parseColor("#66ccff");
-        this.mHighlightColor = Color.parseColor("#8EDBFF");
-        this.mHighlightStrokeColor = Color.parseColor("#ffffff");
-        this.mIfTouch = false;
+        this.mClickColor = Color.parseColor("#8EDBFF");
+        this.mClickStrokeColor = Color.parseColor("#ffffff");
+        this.mLongClickColor = Color.parseColor("#FEE38A");
+        this.mLongClickStrokeColor = Color.parseColor("#ffffff");
+        this.mIfClick = false;
+        this.mIfLongClick = false;
         this.mStrokeColor = Color.parseColor("#000000");
         this.mStrokeWidth = 3;
     }
@@ -82,12 +94,21 @@ public class CnMapConfig {
         return this;
     }
 
-    public int getHighlightTextColor() {
-        return mHighlightTextColor;
+    public int getClickTextColor() {
+        return mClickTextColor;
     }
 
-    public CnMapConfig setHighlightTextColor(int highlightTextColor) {
-        mHighlightTextColor = highlightTextColor;
+    public CnMapConfig setClickTextColor(int clickTextColor) {
+        mClickTextColor = clickTextColor;
+        return this;
+    }
+
+    public int getLongClickTextColor() {
+        return mLongClickTextColor;
+    }
+
+    public CnMapConfig setLongClickTextColor(int longClickTextColor) {
+        mLongClickTextColor = longClickTextColor;
         return this;
     }
 
@@ -109,30 +130,57 @@ public class CnMapConfig {
         return this;
     }
 
-    public int getHighlightColor() {
-        return mHighlightColor;
+    public int getClickColor() {
+        return mClickColor;
     }
 
-    public CnMapConfig setHighlightColor(int highlightColor) {
-        mHighlightColor = highlightColor;
+    public CnMapConfig setClickColor(int clickColor) {
+        mClickColor = clickColor;
         return this;
     }
 
-    public int getHighlightStrokeColor() {
-        return mHighlightStrokeColor;
+    public int getClickStrokeColor() {
+        return mClickStrokeColor;
     }
 
-    public CnMapConfig setHighlightStrokeColor(int highlightStrokeColor) {
-        mHighlightStrokeColor = highlightStrokeColor;
+    public CnMapConfig setClickStrokeColor(int clickStrokeColor) {
+        mClickStrokeColor = clickStrokeColor;
         return this;
     }
 
-    protected boolean getIfTouch() {
-        return mIfTouch;
+    public int getLongClickColor() {
+        return mLongClickColor;
     }
 
-    protected CnMapConfig setIfTouch(boolean ifTouch) {
-        mIfTouch = ifTouch;
+    public CnMapConfig setLongClickColor(int longClickColor) {
+        mLongClickColor = longClickColor;
+        return this;
+    }
+
+    public int getLongClickStrokeColor() {
+        return mLongClickStrokeColor;
+    }
+
+    public CnMapConfig setLongClickStrokeColor(int longClickStrokeColor) {
+        mLongClickStrokeColor = longClickStrokeColor;
+        return this;
+    }
+
+    protected boolean getIfClick() {
+        return mIfClick;
+    }
+
+    protected CnMapConfig setIfClick(boolean ifClick) {
+        mIfClick = ifClick;
+        return this;
+    }
+
+    protected boolean getIfLongClick() {
+        return mIfLongClick;
+    }
+
+    protected CnMapConfig setIfLongClick(boolean ifLongClick) {
+        mIfLongClick = ifLongClick;
         return this;
     }
 

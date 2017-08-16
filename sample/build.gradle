@@ -62,7 +62,7 @@ dependencies {
     // Library
 //    compile project(':library')
     // ChinaMapInfoView
-    compile 'com.sorashiro.ChinaMapInfoView:library:1.0.1'
+    compile 'com.sorashiro.ChinaMapInfoView:library:1.0.2'
 
     // ButterKnife
     compile 'com.jakewharton:butterknife:8.5.1'

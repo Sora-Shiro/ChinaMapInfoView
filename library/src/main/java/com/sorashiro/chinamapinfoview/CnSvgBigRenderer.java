@@ -48,9 +48,9 @@ public class CnSvgBigRenderer extends SVGRenderer {
     private CnMap mCnMap;
 
     private Paint mTextPaint;
-    private Paint mTouchFillPaint;
-    private Paint mTouchStrokePaint;
-    private Paint mTouchTextPaint;
+    private Paint mHighlightPaint;
+    private Paint mHighlightStrokePaint;
+    private Paint mHightlightTextPaint;
 
     private int mTouchIndex;
 
@@ -90,9 +90,9 @@ public class CnSvgBigRenderer extends SVGRenderer {
         mFillPaint = initPaint(Paint.Style.FILL);
         mStrokePaint = initPaint(Paint.Style.STROKE);
         mTextPaint = initPaint(Paint.Style.FILL);
-        mTouchFillPaint = initPaint(Paint.Style.FILL);
-        mTouchStrokePaint = initPaint(Paint.Style.STROKE);
-        mTouchTextPaint = initPaint(Paint.Style.FILL);
+        mHighlightPaint = initPaint(Paint.Style.FILL);
+        mHighlightStrokePaint = initPaint(Paint.Style.STROKE);
+        mHightlightTextPaint = initPaint(Paint.Style.FILL);
 
         // 根据设定绘制省份
         for (int i = 0; i < 34; i++) {
@@ -104,11 +104,17 @@ public class CnSvgBigRenderer extends SVGRenderer {
             }
             mStrokePaint.setStrokeWidth(strokeWidth);
 
-            if (cnMapConfig.getIfTouch()) {
-                mTouchFillPaint.setColor(cnMapConfig.getHighlightColor());
-                mTouchFillPaint.setStrokeWidth(strokeWidth);
-                mTouchStrokePaint.setColor(cnMapConfig.getHighlightStrokeColor());
-                mTouchStrokePaint.setStrokeWidth(strokeWidth);
+            if (cnMapConfig.getIfClick()) {
+                mHighlightPaint.setColor(cnMapConfig.getClickColor());
+                mHighlightPaint.setStrokeWidth(strokeWidth);
+                mHighlightStrokePaint.setColor(cnMapConfig.getClickStrokeColor());
+                mHighlightStrokePaint.setStrokeWidth(strokeWidth);
+                mTouchIndex = i;
+            } else if (cnMapConfig.getIfLongClick()) {
+                mHighlightPaint.setColor(cnMapConfig.getLongClickColor());
+                mHighlightPaint.setStrokeWidth(strokeWidth);
+                mHighlightStrokePaint.setColor(cnMapConfig.getLongClickStrokeColor());
+                mHighlightStrokePaint.setStrokeWidth(strokeWidth);
                 mTouchIndex = i;
             } else {
                 mFillPaint.setColor(cnMapConfig.getFillColor());
@@ -122,8 +128,8 @@ public class CnSvgBigRenderer extends SVGRenderer {
 
         // 被触摸的最后着色，防止边界被其他省份掩盖
         if (mTouchIndex != -1) {
-            renderGo(canvas, filter, mTouchFillPaint, mTouchIndex);
-            renderGo(canvas, filter, mTouchStrokePaint, mTouchIndex);
+            renderGo(canvas, filter, mHighlightPaint, mTouchIndex);
+            renderGo(canvas, filter, mHighlightStrokePaint, mTouchIndex);
         }
 
         // 绘制文字
@@ -131,14 +137,17 @@ public class CnSvgBigRenderer extends SVGRenderer {
             CnMapConfig cnMapConfig = mConfig.get(mProvince[i]);
             if (cnMapConfig.getIfTextScale()) {
                 mTextPaint.setTextSize(cnMapConfig.getTextSize() * scaleX);
-                mTouchTextPaint.setTextSize(cnMapConfig.getTextSize() * scaleX);
+                mHightlightTextPaint.setTextSize(cnMapConfig.getTextSize() * scaleX);
             } else {
                 mTextPaint.setTextSize(cnMapConfig.getTextSize());
-                mTouchTextPaint.setTextSize(cnMapConfig.getTextSize());
+                mHightlightTextPaint.setTextSize(cnMapConfig.getTextSize());
             }
-            if (cnMapConfig.getIfTouch()) {
-                mTouchTextPaint.setColor(cnMapConfig.getHighlightTextColor());
-                renderTextByProvince(canvas, mTouchTextPaint, cnMapConfig.getText(), i, w, h);
+            if (cnMapConfig.getIfClick()) {
+                mHightlightTextPaint.setColor(cnMapConfig.getClickTextColor());
+                renderTextByProvince(canvas, mHightlightTextPaint, cnMapConfig.getText(), i, w, h);
+            } else if(cnMapConfig.getIfLongClick()) {
+                mHightlightTextPaint.setColor(cnMapConfig.getLongClickTextColor());
+                renderTextByProvince(canvas, mHightlightTextPaint, cnMapConfig.getText(), i, w, h);
             } else {
                 mTextPaint.setColor(cnMapConfig.getTextColor());
                 renderTextByProvince(canvas, mTextPaint, cnMapConfig.getText(), i, w, h);

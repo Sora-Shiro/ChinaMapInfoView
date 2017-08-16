@@ -4,9 +4,9 @@ This is a China map that can be translated and scaled. You can use it to visuall
 
 这是一个可移动、缩放的中国地图，开发者可以使用它来直观显示基于省的统计数据，如各省某年人口出生率、各省每月最高气温等。
 
-Implement the interface included the province onClick event callback so you can use it to jump to the Activity that displays the province's detailed data.
+Implement the interface included the province onClick / onLongClick event callback so you can use it to jump to the Activity that displays the province's detailed data.
 
-实现了省份点击事件回调的接口，可以用来跳转到显示该省详细数据的 Activity。
+实现了省份点击 / 长按事件回调的接口，可以用来跳转到显示该省详细数据的 Activity。
 
 Use  [SVG-Android](https://github.com/MegatronKing/SVG-Android/blob/master/README.zh-cn.md) to generate Drawable, API 14 (Android 4.0)+ supported.
 
@@ -19,16 +19,16 @@ Supporting:
 - Scale
 - Highlight clicked province
 - Rollback when out of view
-- Implement ChinaMapViewProvinceListener callback to interact
-- Custom fill / highlight (stroke) color 、stroke width
+- Implement ChinaMapViewProvinceListener callback to interact (onClick / onLongClick)
+- Custom fill / click / longClick (stroke) color 、stroke width
 
 支持：
 - 平移
 - 缩放
 - 高亮选中省份
 - 当图片过度移动则回滚
-- 实现 ChinaMapViewProvinceListener 接口来进行回调交互
-- 自定义填充 / 高亮（边界）颜色、边界宽度
+- 实现 ChinaMapViewProvinceListener 接口来进行回调交互（点击 / 长按）
+- 自定义填充 / 点击 / 长按（边界）颜色、边界宽度
 
 # Preview
 
@@ -42,7 +42,7 @@ Supporting:
 <dependency>
   <groupId>com.sorashiro.ChinaMapInfoView</groupId>
   <artifactId>library</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
   <type>pom</type>
 </dependency>
 ```
@@ -50,7 +50,7 @@ Supporting:
 ## Gradle
 
 ```
-compile 'com.sorashiro.ChinaMapInfoView:library:1.0.1'
+compile 'com.sorashiro.ChinaMapInfoView:library:1.0.2'
 ```
 
 # How To Use
@@ -112,12 +112,11 @@ CnMapConfig configAnhui = cnConfigMap.get(cnMap.PROVINCE[0]);
 // 支持链式调用（方法链）
 configAnhui
         .setFillColor(Color.parseColor("#ee0000"))
-        .setHighlightColor(Color.parseColor("#99ffff"));
+        .setClickColor(Color.parseColor("#99ffff"));
 ```
 
 # Todo
 - Text showed (but when province too small they should invisible)
-- Long clicked event
 
 # License
 
