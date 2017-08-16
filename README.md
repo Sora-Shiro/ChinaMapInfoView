@@ -12,6 +12,13 @@ Use  [SVG-Android](https://github.com/MegatronKing/SVG-Android/blob/master/READM
 
 使用 [SVG-Android](https://github.com/MegatronKing/SVG-Android/blob/master/README.zh-cn.md) 生成 Drawable ， 支持 API 14（Android 4.0）+ 版本。
 
+# What's New
+- v1.0.2 : Add onLongClick callback
+
+# Preview
+
+![preview](https://github.com/Sora-Shiro/ChinaMapInfoView/blob/master/extra/preview.gif)
+
 # Function
 
 Supporting:
@@ -29,10 +36,6 @@ Supporting:
 - 当图片过度移动则回滚
 - 实现 ChinaMapViewProvinceListener 接口来进行回调交互（点击 / 长按）
 - 自定义填充 / 点击 / 长按（边界）颜色、边界宽度
-
-# Preview
-
-![preview](https://github.com/Sora-Shiro/ChinaMapInfoView/blob/master/extra/preview.gif)
 
 # Download
 
@@ -90,6 +93,11 @@ public class MainActivity extends AppCompatActivity implements ChinaMapInfoView.
     @Override
     public void onProvinceClick(int i) {
         LogAndToastUtil.ToastOut(this, imgCnMap.getCnMap().PROVINCE[i] + " is clicked");
+    }
+
+    @Override
+    public void onProvinceLongClick(int i) {
+        LogAndToastUtil.ToastOut(this, imgCnMap.getCnMap().PROVINCE[i] + " is long clicked");
     }
 }
 ```
